@@ -77,6 +77,12 @@ class _ChooseCarScreenState extends State<ChooseCarScreen> {
           ),
           foregroundColor: const Color(0xFFD4AF37),
           iconTheme: const IconThemeData(color: Color(0xFFD4AF37)),
+             actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () => context.read<CustomerInfoCubit>().load(),
+            ),
+          ],
         ),
         body: SafeArea(
           child: BlocBuilder<CustomerInfoCubit, CustomerInfoState>(
@@ -89,6 +95,13 @@ class _ChooseCarScreenState extends State<ChooseCarScreen> {
 
               return Directionality(
                 textDirection: isLtr(context) ? ui.TextDirection.ltr : ui.TextDirection.rtl,
+                 child: RefreshIndicator(
+                  color: const Color(0xFFD4AF37),
+                  backgroundColor: Colors.black,
+                  onRefresh: () async {
+                    await context.read<CustomerInfoCubit>().load();
+                  },
+                
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
@@ -135,7 +148,7 @@ class _ChooseCarScreenState extends State<ChooseCarScreen> {
                     ),
                   ],
                 ),
-              );
+              ));
             },
           ),
         ),

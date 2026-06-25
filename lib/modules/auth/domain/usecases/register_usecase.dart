@@ -8,13 +8,11 @@ class RegisterUsecase {
 
   Future<AuthSession> call({
     required String name,
-    required String email,
     required String mobile,
     required String password,
   }) {
     return _repo.register(
       name: name,
-      email: email,
       mobile: mobile,
       password: password,
     );

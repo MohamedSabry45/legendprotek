@@ -232,7 +232,7 @@ class MyApp extends StatelessWidget {
             ),
           );
         },
-        home: const FullscreenSplashScreen(),
+        home: isLoggedIn ? const FullscreenSplashScreen() : const GuestSplashScreen(),
         routes: {
           '/fullscreen_splash': (_) => const FullscreenSplashScreen(),
           '/startup': (_) => const StartupDeciderScreen(),

@@ -10,7 +10,7 @@ class ApiEndpoints {
   static const String loginEmail = '/contact/login-email';
 
   static String updateContactBasicInfo({required int id}) {
-    return '/connector/api/contactapi/$id/basic-info';;;
+    return '/connector/api/contactapi/$id/basic-info';
   }
 
   static const String socialCustomerLogin = '/connector/api/auth/social-customer-login';

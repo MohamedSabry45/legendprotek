@@ -75,7 +75,6 @@ class AuthRemoteDataSource {
 
   Future<AuthSessionModel> register({
     required String name,
-    required String email,
     required String mobile,
     required String password,
   }) async {
@@ -84,7 +83,6 @@ class AuthRemoteDataSource {
 
     final payload = <String, dynamic>{
       'name': name,
-      'email': email,
       'mobile': mobile,
       'password': password,
     };
@@ -266,6 +264,10 @@ class AuthRemoteDataSource {
       payload['user_id'] = userId;
     }
 
+    debugPrint('sendPhoneVerificationOtp uri=$uri');
+    debugPrint('sendPhoneVerificationOtp request phone=${_redact(phone)} email=${email.isEmpty ? '(empty)' : _redact(email)} medium=${medium ?? '(null)'} unique_id=${uniqueId != null ? _redact(uniqueId) : '(null)'} name=${name != null ? (name.isEmpty ? '(empty)' : '(provided)') : '(null)'} user_id=${userId ?? '(null)'}');
+    debugPrint('sendPhoneVerificationOtp FULL PAYLOAD: ${jsonEncode(payload)}');
+
     final res = await _client.post(
       uri,
       headers: const <String, String>{
@@ -273,6 +275,9 @@ class AuthRemoteDataSource {
       },
       body: jsonEncode(payload),
     );
+
+    debugPrint('sendPhoneVerificationOtp status=${res.statusCode}');
+    debugPrint('sendPhoneVerificationOtp response=${res.body}');
 
     final decoded = _decodeJson(res.body);
 

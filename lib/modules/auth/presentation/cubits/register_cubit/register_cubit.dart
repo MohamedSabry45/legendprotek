@@ -20,18 +20,16 @@ class RegisterCubit extends Cubit<RegisterState> {
 
   Future<void> register({
     required String name,
-    required String email,
     required String mobile,
     required String password,
   }) async {
     emit(RegisterLoading());
 
     final n = name.trim();
-    final e = email.trim();
     final m = mobile.trim();
     final p = password.trim();
 
-    if (n.isEmpty || e.isEmpty || m.isEmpty || p.isEmpty) {
+    if (n.isEmpty || m.isEmpty || p.isEmpty) {
       emit(RegisterError('Required'));
       return;
     }
@@ -39,7 +37,6 @@ class RegisterCubit extends Cubit<RegisterState> {
     try {
       final session = await _usecase.call(
         name: n,
-        email: e,
         mobile: m,
         password: p,
       );

@@ -6,7 +6,6 @@ abstract class AuthRepository {
 
   Future<AuthSession> register({
     required String name,
-    required String email,
     required String mobile,
     required String password,
   });

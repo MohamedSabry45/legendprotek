@@ -155,6 +155,8 @@ class SocialAuthCubit extends Cubit<SocialAuthState> {
     }
 
     try {
+      debugPrint('[SOCIAL_LOGIN] Calling socialCustomerLogin with: medium=$med, uniqueId=$uid, email=$em, accessToken=${t.isNotEmpty ? 'present' : 'empty'}, name=${name ?? '(null)'}');
+
       final res = await _remote.socialCustomerLogin(
         accessToken: t,
         uniqueId: uid,
@@ -164,6 +166,8 @@ class SocialAuthCubit extends Cubit<SocialAuthState> {
         identityToken: idToken,
         authorizationCode: authCode,
       );
+
+      debugPrint('[SOCIAL_LOGIN] Response: success=${res.success}, phoneExist=${res.phoneExist}, isNewUser=${res.isNewUser}, isSoftDeleted=${res.isSoftDeleted}, token=${res.token.isNotEmpty ? 'present' : 'empty'}, userId=${res.userId}, action=${res.action}, message=${res.message}');
 
       if (isClosed) return;
 
@@ -192,7 +196,8 @@ class SocialAuthCubit extends Cubit<SocialAuthState> {
 
       debugPrint('[APPLE_LOGIN] [A5] backend ok: isNewUser=${res.isNewUser} phoneExist=${res.phoneExist} token=${res.token.isNotEmpty ? 'present' : 'empty'}');
 
-      if (res.phoneExist && res.token.trim().isNotEmpty) {
+      // If token is present, login directly regardless of isNewUser or phoneExist
+      if (res.token.trim().isNotEmpty) {
         AppConstants.token = res.token;
         await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: res.token);
         if (isClosed) return;

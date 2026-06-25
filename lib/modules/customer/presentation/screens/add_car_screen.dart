@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:reservation_workshop/core/components/dialogs/prograss_delay_dialog.dart';
 import 'package:reservation_workshop/core/components/toasters.dart';
+import 'package:reservation_workshop/core/functions/localization_helper.dart';
 import 'package:reservation_workshop/modules/customer/data/datasources/car_remote_datasource.dart';
 import 'package:reservation_workshop/modules/customer/data/models/brand_model.dart';
 import 'package:reservation_workshop/modules/customer/data/models/car_model_model.dart';
@@ -29,7 +30,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
   BrandModel? _selectedBrand;
   CarModelModel? _selectedModel;
 
-  final List<String> _years = List.generate(30, (index) => (2025 - index).toString());
+  final List<String> _years = List.generate(30, (index) => (2026 - index).toString());
   String? _selectedYear;
 
   bool _loadingBrands = false;
@@ -89,8 +90,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
   }
 
   String? _requiredValidator(String? v) {
-    if (v == null) return 'مطلوب';
-    if (v.trim().isEmpty) return 'مطلوب';
+    if (v == null) return t(context, 'validation.required', ar: 'مطلوب', en: 'Required');
+    if (v.trim().isEmpty) return t(context, 'validation.required', ar: 'مطلوب', en: 'Required');
     return null;
   }
 
@@ -100,15 +101,15 @@ class _AddCarScreenState extends State<AddCarScreen> {
     final year = _selectedYear;
 
     if (brand == null) {
-      Toasters.show('اختر الماركة');
+      Toasters.show(t(context, 'cars.select_brand', ar: 'اختر الماركة', en: 'Select brand'));
       return;
     }
     if (model == null) {
-      Toasters.show('اختر الموديل');
+      Toasters.show(t(context, 'cars.select_model', ar: 'اختر الموديل', en: 'Select model'));
       return;
     }
     if (year == null || year.trim().isEmpty) {
-      Toasters.show('اختر سنة الصنع');
+      Toasters.show(t(context, 'cars.select_year', ar: 'اختر سنة الصنع', en: 'Select manufacturing year'));
       return;
     }
 
@@ -132,7 +133,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
       Navigator.of(context, rootNavigator: true).maybePop();
       
       if (!mounted) return;
-      Toasters.show(msg.isNotEmpty ? msg : 'تم إضافة السيارة بنجاح');
+      Toasters.show(msg.isNotEmpty ? msg : t(context, 'cars.add_success', ar: 'تم إضافة السيارة بنجاح', en: 'Car added successfully'));
       
       await Future.delayed(const Duration(milliseconds: 300));
       
@@ -173,9 +174,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF050505),
         elevation: 0,
-        title: const Text(
-          'إضافة سيارة',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+        title: Text(
+          t(context, 'cars.add_car_title', ar: 'إضافة سيارة', en: 'Add Car'),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
         ),
         iconTheme: const IconThemeData(color: Colors.white70),
         foregroundColor: Colors.white,
@@ -184,16 +185,16 @@ class _AddCarScreenState extends State<AddCarScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Directionality(
-            textDirection: ui.TextDirection.rtl,
+            textDirection: isLtr(context) ? ui.TextDirection.ltr : ui.TextDirection.rtl,
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'معلومات السيارة',
+                  Text(
+                    t(context, 'cars.car_info', ar: 'معلومات السيارة', en: 'Car Information'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
                       color: Colors.white70,
@@ -213,7 +214,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                       textDirection: ui.TextDirection.ltr,
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                       decoration: InputDecoration(
-                        hintText: 'رقم الشاسيه',
+                        hintText: t(context, 'cars.chassis_number', ar: 'رقم الشاسيه', en: 'Chassis Number'),
                         hintStyle: const TextStyle(color: Colors.white54),
                         filled: true,
                         fillColor: Colors.transparent,
@@ -235,7 +236,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                       validator: _requiredValidator,
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                       decoration: InputDecoration(
-                        hintText: 'رقم اللوحة',
+                        hintText: t(context, 'cars.plate_number', ar: 'رقم اللوحة', en: 'Plate Number'),
                         hintStyle: const TextStyle(color: Colors.white54),
                         filled: true,
                         fillColor: Colors.transparent,
@@ -247,7 +248,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                   const SizedBox(height: 12),
                   // Brand Dropdown
                   DropdownButtonFormField<BrandModel>(
-                    decoration: _dropdownDecoration(hint: 'الماركة'),
+                    decoration: _dropdownDecoration(hint: t(context, 'cars.brand', ar: 'الماركة', en: 'Brand')),
                     value: _selectedBrand,
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                     dropdownColor: const Color(0xFF1A1A1A),
@@ -278,7 +279,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                   const SizedBox(height: 12),
                   // Model Dropdown
                   DropdownButtonFormField<CarModelModel>(
-                    decoration: _dropdownDecoration(hint: 'الموديل'),
+                    decoration: _dropdownDecoration(hint: t(context, 'cars.model', ar: 'الموديل', en: 'Model')),
                     value: _selectedModel,
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                     dropdownColor: const Color(0xFF1A1A1A),
@@ -310,7 +311,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                       validator: _requiredValidator,
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                       decoration: InputDecoration(
-                        hintText: 'اللون',
+                        hintText: t(context, 'cars.color', ar: 'اللون', en: 'Color'),
                         hintStyle: const TextStyle(color: Colors.white54),
                         filled: true,
                         fillColor: Colors.transparent,
@@ -322,7 +323,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                   const SizedBox(height: 12),
                   // Year Dropdown
                   DropdownButtonFormField<String>(
-                    decoration: _dropdownDecoration(hint: 'سنة الصنع'),
+                    decoration: _dropdownDecoration(hint: t(context, 'cars.manufacturing_year', ar: 'سنة الصنع', en: 'Manufacturing Year')),
                     value: _selectedYear,
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                     dropdownColor: const Color(0xFF1A1A1A),
@@ -350,9 +351,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
                         ),
                       ),
                       onPressed: _submit,
-                      child: const Text(
-                        'إضافة سيارة',
-                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                      child: Text(
+                        t(context, 'cars.add_car', ar: 'إضافة سيارة', en: 'Add Car'),
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                       ),
                     ),
                   ),

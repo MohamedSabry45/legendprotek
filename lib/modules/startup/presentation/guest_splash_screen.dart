@@ -25,7 +25,7 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
   }
 
   Future<void> _loadConfig() async {
-
+    await CacheHelper.init();
   }
 
   void _toggleLanguage() {
@@ -90,187 +90,180 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
 
                 // ── Main Content ───────────────────────────────────────────
                 Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        reverse: true,
-                        child: ConstrainedBox(
-                          constraints:
-                              BoxConstraints(minHeight: constraints.maxHeight),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                        // ── Logo ─────────────────────────────────────────────
-                        SlideUpWidget(
-                          delay: 800,
-                          duration: 700,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              height: 160,
-                              fit: BoxFit.contain,
+                  child: Column(
+                    children: [
+                      // ── Logo (Centered) ─────────────────────────────────────
+                      Expanded(
+                        child: Center(
+                          child: SlideUpWidget(
+                            delay: 800,
+                            duration: 700,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Image.asset(
+                                'assets/images/logo.png',
+                                height: 300,
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                         ),
+                      ),
 
+                      // ── Bottom Content ─────────────────────────────────────
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SlideUpWidget(
+                            delay: 1100,
+                            duration: 700,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(
+                                isLtrValue
+                                    ? 'Login to Unlock\nawesome new features'
+                                    : 'تسجيل الدخول لاكتشاف\nمميزات جديدة رائعة',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Norsal',
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  height: 1.3,
+                                  fontWeight: FontWeight.bold,
+                                  shadows: [
+                                    Shadow(
+                                      offset: Offset(1, 1),
+                                      blurRadius: 2,
+                                      color: Colors.black54,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
 
-                        SlideUpWidget(
-                          delay: 1100,
-                          duration: 700,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Text(
-                              isLtrValue
-                                  ? 'Login to Unlock\nawesome new features'
-                                  : 'تسجيل الدخول لاكتشاف\nمميزات جديدة رائعة',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'Norsal',
-                                fontSize: 12,
-                                color: Colors.white,
-                                height: 1.3,
-                                fontWeight: FontWeight.bold,
-                                shadows: [
-                                  Shadow(
-                                    offset: Offset(1, 1),
-                                    blurRadius: 2,
-                                    color: Colors.black54,
+                          const SizedBox(height: 20),
+
+                          // ── Login Button ────────────────────────────────────
+                          SlideUpWidget(
+                            delay: 2100,
+                            duration: 700,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: 54, // زيادة الارتفاع
+                                child: ElevatedButton(
+                                  onPressed: () => Navigator.pushNamed(
+                                    context,
+                                    RoutesName.loginScreen,
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color.fromARGB(204, 148, 114, 11),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      isLtrValue ? 'Login' : 'تسجيـل الدخـول',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: 'Norsal',
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        letterSpacing: 0.5,
+                                        shadows: [
+                                          Shadow(
+                                            offset: Offset(1, 1),
+                                            blurRadius: 2,
+                                            color: Colors.black54,
+                                          ),
+                                        ],
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // ── Footer Links ────────────────────────────────────
+                          SlideUpWidget(
+                            delay: 2300,
+                            duration: 700,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pushNamed(
+                                      context,
+                                      RoutesName.menuAboutCenterScreen,
+                                    ),
+                                    child: Text(
+                                      isLtrValue
+                                          ? 'Terms & Conditions'
+                                          : 'الشروط والأحكام',
+                                      style: TextStyle(
+                                        fontFamily: 'Norsal',
+                                        color: Colors.white70,
+                                        fontSize: 14,
+                                        shadows: [
+                                          Shadow(
+                                            offset: Offset(1, 1),
+                                            blurRadius: 2,
+                                            color: Colors.black54,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      await CacheHelper.saveData(key: PrefKeys.kIsGuestMode, value: true);
+                                      if (!mounted) return;
+                                      Navigator.pushNamedAndRemoveUntil(
+                                        context,
+                                        RoutesName.homeScreen,
+                                        (route) => false,
+                                      );
+                                    },
+                                    child: Text(
+                                      isLtrValue ? 'Skip Login' : 'تخطي تسجيل الدخول',
+                                      style: TextStyle(
+                                        fontFamily: 'Norsal',
+                                        color: Colors.white70,
+                                        fontSize: 14,
+                                        shadows: [
+                                          Shadow(
+                                            offset: Offset(1, 1),
+                                            blurRadius: 2,
+                                            color: Colors.black54,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // ── Login Button ────────────────────────────────────
-                        SlideUpWidget(
-                          delay: 2100,
-                          duration: 700,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: 54, // زيادة الارتفاع
-                              child: ElevatedButton(
-                                onPressed: () => Navigator.pushNamed(
-                                  context,
-                                  RoutesName.enterMobileScreen,
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.zero,
-                                    side: BorderSide(
-                                      color: Colors.white,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    isLtrValue ? 'Login' : 'تسجيـل الدخـول',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontFamily: 'Norsal',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      letterSpacing: 0.5,
-                                      shadows: [
-                                        Shadow(
-                                          offset: Offset(1, 1),
-                                          blurRadius: 2,
-                                          color: Colors.black54,
-                                        ),
-                                      ],
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        // ── Footer Links ────────────────────────────────────
-                        SlideUpWidget(
-                          delay: 2300,
-                          duration: 700,
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                TextButton(
-                                  onPressed: () => Navigator.pushNamed(
-                                    context,
-                                    RoutesName.menuAboutCenterScreen,
-                                  ),
-                                  child: Text(
-                                    isLtrValue
-                                        ? 'Terms & Conditions'
-                                        : 'الشروط والأحكام',
-                                    style: TextStyle(
-                                      fontFamily: 'Norsal',
-                                      color: Colors.white70,
-                                      fontSize: 12,
-                                      shadows: [
-                                        Shadow(
-                                          offset: Offset(1, 1),
-                                          blurRadius: 2,
-                                          color: Colors.black54,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    await CacheHelper.saveData(key: PrefKeys.kIsGuestMode, value: true);
-                                    if (!mounted) return;
-                                    Navigator.pushNamedAndRemoveUntil(
-                                      context,
-                                      RoutesName.homeScreen,
-                                      (route) => false,
-                                    );
-                                  },
-                                  child: Text(
-                                    isLtrValue ? 'Skip Login' : 'تخطي تسجيل الدخول',
-                                    style: TextStyle(
-                                      fontFamily: 'Norsal',
-                                      color: Colors.white70,
-                                      fontSize: 12,
-                                      shadows: [
-                                        Shadow(
-                                          offset: Offset(1, 1),
-                                          blurRadius: 2,
-                                          color: Colors.black54,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                        ],
+                      ),
+                    ],
                   ),
+                ),
               ],
         ),
       ),

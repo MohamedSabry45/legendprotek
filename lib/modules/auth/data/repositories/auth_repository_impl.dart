@@ -17,13 +17,11 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AuthSession> register({
     required String name,
-    required String email,
     required String mobile,
     required String password,
   }) {
     return _remote.register(
       name: name,
-      email: email,
       mobile: mobile,
       password: password,
     );

@@ -22,7 +22,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -41,17 +40,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mobile != null && mobile.trim().isNotEmpty) {
         _mobileController.text = mobile;
       }
-      final email = args['email']?.toString();
-      if (email != null && email.trim().isNotEmpty) {
-        _emailController.text = email;
-      }
     }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
     _mobileController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -156,37 +150,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        // Email Input - White background with border
-                        Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0A0A0A),
-                            border: Border.all(color: const Color(0xFF0A0A0A), width: 2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: TextFormField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            textDirection: ui.TextDirection.ltr,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'auth.register_email_hint'.tr(),
-                              hintStyle: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 16,
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFF0A0A0A),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            ),
-                            validator: ValidationForm.emailValidator,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
                         // Mobile Input - White background with border
                         Container(
                           decoration: BoxDecoration(
@@ -269,7 +232,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               if (formKey.currentState!.validate()) {
                                 cubit.register(
                                   name: _nameController.text,
-                                  email: _emailController.text,
                                   mobile: _mobileController.text,
                                   password: _passwordController.text,
                                 );

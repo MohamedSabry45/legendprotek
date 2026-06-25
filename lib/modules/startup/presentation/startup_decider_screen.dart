@@ -56,7 +56,7 @@ class _StartupDeciderScreenState extends State<StartupDeciderScreen> {
     } else {
       Navigator.pushNamedAndRemoveUntil(
         context,
-        RoutesName.loginScreen,
+        RoutesName.guestSplashScreen,
         (route) => false,
       );
     }
