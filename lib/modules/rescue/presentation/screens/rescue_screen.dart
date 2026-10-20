@@ -3,15 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 
-import 'package:reservation_workshop/config/style/app_colors.dart';
-import 'package:reservation_workshop/config/style/app_spacing.dart';
 import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/core/widgets/app_header.dart';
 import 'package:reservation_workshop/core/widgets/login_required_view.dart';
 import 'package:reservation_workshop/config/routes/routes_name.dart';
 
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_cubit.dart';
-import 'package:reservation_workshop/modules/main/presentation/widgets/date_time_field.dart';
 
 import '../../data/models/pickup_request_model.dart';
 import '../cubit/rescue_cubit.dart';
@@ -45,7 +42,9 @@ class _RescueScreenState extends State<RescueScreen> {
     _locationController.text = '';
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<RescueCubit>().load(customerInfoCubit: context.read<CustomerInfoCubit>());
+      context.read<RescueCubit>().load(
+        customerInfoCubit: context.read<CustomerInfoCubit>(),
+      );
     });
   }
 
@@ -83,7 +82,13 @@ class _RescueScreenState extends State<RescueScreen> {
     if (time == null) return;
 
     setState(() {
-      _bookingStart = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      _bookingStart = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
     });
   }
 
@@ -110,7 +115,8 @@ class _RescueScreenState extends State<RescueScreen> {
   }
 
   String _locationLabel() {
-    if (_pickupLat == null || _pickupLng == null) return 'rescue.location_pick_on_map'.tr();
+    if (_pickupLat == null || _pickupLng == null)
+      return 'rescue.location_pick_on_map'.tr();
     return 'rescue.location_picked_success'.tr();
   }
 
@@ -123,7 +129,7 @@ class _RescueScreenState extends State<RescueScreen> {
         _bookingStart == null ||
         _pickupLat == null ||
         _pickupLng == null) {
-      Toasters.show('rescue.toast_fill_required'.tr());
+      Toasters.errorKey('rescue.toast_fill_required');
       return;
     }
 
@@ -146,7 +152,9 @@ class _RescueScreenState extends State<RescueScreen> {
     final size = MediaQuery.of(context).size;
 
     return Directionality(
-      textDirection: context.locale.languageCode == 'ar' ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+      textDirection: context.locale.languageCode == 'ar'
+          ? ui.TextDirection.rtl
+          : ui.TextDirection.ltr,
       child: Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(
@@ -161,10 +169,13 @@ class _RescueScreenState extends State<RescueScreen> {
                 child: BlocConsumer<RescueCubit, RescueState>(
                   listener: (context, state) {
                     if (state is RescueError) {
-                      Toasters.show(state.message);
+                      Toasters.errorFrom(
+                        state.message,
+                        fallbackKey: 'rescue.request_failed',
+                      );
                     }
                     if (state is RescueSuccess) {
-                      Toasters.show(state.message);
+                      Toasters.success('rescue.request_sent'.tr());
                       Navigator.pop(context);
                     }
                   },
@@ -216,7 +227,9 @@ class _RescueScreenState extends State<RescueScreen> {
                               Container(
                                 padding: const EdgeInsets.all(20),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFD4AF37).withOpacity(0.15),
+                                  color: const Color(
+                                    0xFFD4AF37,
+                                  ).withOpacity(0.15),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
@@ -227,7 +240,7 @@ class _RescueScreenState extends State<RescueScreen> {
                               ),
                               const SizedBox(height: 20),
                               Text(
-                                state.message,
+                                Toasters.displayMessage(state.message),
                                 textAlign: TextAlign.center,
                                 style: textTheme.bodyLarge?.copyWith(
                                   fontSize: 16,
@@ -286,8 +299,15 @@ class _RescueScreenState extends State<RescueScreen> {
                                       Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: const Color.fromARGB(179, 100, 116, 139),
-                                          borderRadius: BorderRadius.circular(12),
+                                          color: const Color.fromARGB(
+                                            179,
+                                            100,
+                                            116,
+                                            139,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: const Icon(
                                           Icons.directions_car_rounded,
@@ -316,13 +336,17 @@ class _RescueScreenState extends State<RescueScreen> {
                                           (c) => DropdownMenuItem<int>(
                                             value: c.id,
                                             child: Text(
-                                              '${c.device} ${c.model} ${(c.plateNumber ?? '').trim()}'.trim(),
-                                              style: const TextStyle(fontSize: 14),
+                                              '${c.device} ${c.model} ${(c.plateNumber ?? '').trim()}'
+                                                  .trim(),
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                              ),
                                             ),
                                           ),
                                         )
                                         .toList(),
-                                    onChanged: (v) => setState(() => _deviceId = v),
+                                    onChanged: (v) =>
+                                        setState(() => _deviceId = v),
                                   ),
                                   const SizedBox(height: 16),
                                   _buildModernDropdown(
@@ -335,7 +359,9 @@ class _RescueScreenState extends State<RescueScreen> {
                                             value: b.id,
                                             child: Text(
                                               b.name,
-                                              style: const TextStyle(fontSize: 14),
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                              ),
                                             ),
                                           ),
                                         )
@@ -346,7 +372,9 @@ class _RescueScreenState extends State<RescueScreen> {
                                         _serviceId = null;
                                       });
                                       if (v != null) {
-                                        context.read<RescueCubit>().loadServices(locationId: v);
+                                        context
+                                            .read<RescueCubit>()
+                                            .loadServices(locationId: v);
                                       }
                                     },
                                   ),
@@ -361,12 +389,15 @@ class _RescueScreenState extends State<RescueScreen> {
                                             value: s.id,
                                             child: Text(
                                               s.name,
-                                              style: const TextStyle(fontSize: 14),
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                              ),
                                             ),
                                           ),
                                         )
                                         .toList(),
-                                    onChanged: (v) => setState(() => _serviceId = v),
+                                    onChanged: (v) =>
+                                        setState(() => _serviceId = v),
                                   ),
                                 ],
                               ),
@@ -377,7 +408,14 @@ class _RescueScreenState extends State<RescueScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFFD4AF37).withOpacity(0.3),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color.fromARGB(20, 255, 255, 255)),
+                                border: Border.all(
+                                  color: const Color.fromARGB(
+                                    20,
+                                    255,
+                                    255,
+                                    255,
+                                  ),
+                                ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.20),
@@ -394,8 +432,15 @@ class _RescueScreenState extends State<RescueScreen> {
                                       Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: const Color.fromARGB(38, 139, 92, 246),
-                                          borderRadius: BorderRadius.circular(12),
+                                          color: const Color.fromARGB(
+                                            38,
+                                            139,
+                                            92,
+                                            246,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: const Icon(
                                           Icons.access_time_rounded,
@@ -426,7 +471,9 @@ class _RescueScreenState extends State<RescueScreen> {
                                     label: 'rescue.label_location'.tr(),
                                     value: _locationLabel(),
                                     onTap: _pickLocationFromMap,
-                                    hasLocation: _pickupLat != null && _pickupLng != null,
+                                    hasLocation:
+                                        _pickupLat != null &&
+                                        _pickupLng != null,
                                   ),
                                 ],
                               ),
@@ -437,7 +484,14 @@ class _RescueScreenState extends State<RescueScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFFD4AF37).withOpacity(0.3),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color.fromARGB(20, 255, 255, 255)),
+                                border: Border.all(
+                                  color: const Color.fromARGB(
+                                    20,
+                                    255,
+                                    255,
+                                    255,
+                                  ),
+                                ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.20),
@@ -454,8 +508,12 @@ class _RescueScreenState extends State<RescueScreen> {
                                       Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFF59E0B).withOpacity(0.15),
-                                          borderRadius: BorderRadius.circular(12),
+                                          color: const Color(
+                                            0xFFF59E0B,
+                                          ).withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: const Icon(
                                           Icons.note_alt_rounded,
@@ -493,14 +551,18 @@ class _RescueScreenState extends State<RescueScreen> {
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide(
-                                          color: const Color(0xFFD4AF37).withOpacity(0.3),
+                                          color: const Color(
+                                            0xFFD4AF37,
+                                          ).withOpacity(0.3),
                                           width: 1.5,
                                         ),
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide(
-                                          color: const Color(0xFFD4AF37).withOpacity(0.3),
+                                          color: const Color(
+                                            0xFFD4AF37,
+                                          ).withOpacity(0.3),
                                           width: 1.5,
                                         ),
                                       ),
@@ -544,9 +606,13 @@ class _RescueScreenState extends State<RescueScreen> {
                                     height: 52,
                                     child: ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFFD4AF37),
+                                        backgroundColor: const Color(
+                                          0xFFD4AF37,
+                                        ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                         ),
                                       ),
                                       onPressed: () {
@@ -575,20 +641,27 @@ class _RescueScreenState extends State<RescueScreen> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
                                   gradient: const LinearGradient(
-                                    colors: [const Color(0xFFD4AF37), const Color(0xFFB8942E)],
+                                    colors: [
+                                      const Color(0xFFD4AF37),
+                                      const Color(0xFFB8942E),
+                                    ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFFD4AF37).withOpacity(0.3).withOpacity(0.3),
+                                      color: const Color(
+                                        0xFFD4AF37,
+                                      ).withOpacity(0.3).withOpacity(0.3),
                                       blurRadius: 16,
                                       offset: const Offset(0, 8),
                                     ),
                                   ],
                                 ),
                                 child: ElevatedButton(
-                                  onPressed: state.isSubmitting ? null : _submit,
+                                  onPressed: state.isSubmitting
+                                      ? null
+                                      : _submit,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.transparent,
                                     shadowColor: Colors.transparent,
@@ -607,7 +680,8 @@ class _RescueScreenState extends State<RescueScreen> {
                                           ),
                                         )
                                       : Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             const Icon(
                                               Icons.send_rounded,
@@ -616,11 +690,12 @@ class _RescueScreenState extends State<RescueScreen> {
                                             const SizedBox(width: 10),
                                             Text(
                                               'rescue.submit'.tr(),
-                                              style: textTheme.titleMedium?.copyWith(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
+                                              style: textTheme.titleMedium
+                                                  ?.copyWith(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -655,11 +730,7 @@ class _RescueScreenState extends State<RescueScreen> {
           padding: const EdgeInsets.only(right: 4, bottom: 8),
           child: Row(
             children: [
-              Icon(
-                icon,
-                size: 16,
-                color: const Color(0xFF64748B),
-              ),
+              Icon(icon, size: 16, color: const Color(0xFF64748B)),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -689,7 +760,10 @@ class _RescueScreenState extends State<RescueScreen> {
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFF050505),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
@@ -706,10 +780,7 @@ class _RescueScreenState extends State<RescueScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF3B82F6),
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -736,7 +807,7 @@ class _RescueScreenState extends State<RescueScreen> {
     required IconData icon,
   }) {
     final hasValue = value != 'rescue.select_datetime'.tr();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -744,11 +815,7 @@ class _RescueScreenState extends State<RescueScreen> {
           padding: const EdgeInsets.only(right: 4, bottom: 8),
           child: Row(
             children: [
-              Icon(
-                icon,
-                size: 16,
-                color: const Color(0xFF64748B),
-              ),
+              Icon(icon, size: 16, color: const Color(0xFF64748B)),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -851,12 +918,12 @@ class _RescueScreenState extends State<RescueScreen> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: hasLocation 
+              color: hasLocation
                   ? const Color.fromARGB(13, 16, 185, 129)
                   : const Color(0xFF050505),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: hasLocation 
+                color: hasLocation
                     ? const Color.fromARGB(77, 16, 185, 129)
                     : const Color(0xFFD4AF37).withOpacity(0.3),
                 width: 1.5,
@@ -867,15 +934,19 @@ class _RescueScreenState extends State<RescueScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: hasLocation 
+                    color: hasLocation
                         ? const Color.fromARGB(26, 16, 185, 129)
                         : const Color(0xFF050505),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    hasLocation ? Icons.check_circle_rounded : Icons.map_rounded,
+                    hasLocation
+                        ? Icons.check_circle_rounded
+                        : Icons.map_rounded,
                     size: 20,
-                    color: hasLocation ? const Color(0xFF10B981) : Colors.white70,
+                    color: hasLocation
+                        ? const Color(0xFF10B981)
+                        : Colors.white70,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -885,7 +956,9 @@ class _RescueScreenState extends State<RescueScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: hasLocation ? const Color(0xFF059669) : Colors.white70,
+                      color: hasLocation
+                          ? const Color(0xFF059669)
+                          : Colors.white70,
                     ),
                   ),
                 ),

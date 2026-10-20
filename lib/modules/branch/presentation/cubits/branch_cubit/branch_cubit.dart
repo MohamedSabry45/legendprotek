@@ -18,15 +18,19 @@ class BranchCubit extends Cubit<BranchState> {
   }
 
   Future<void> load() async {
+    if (isClosed) return;
     emit(BranchLoading());
     try {
       if (await _isGuestMode()) {
+        if (isClosed) return;
         emit(BranchSuccess([]));
         return;
       }
       final branches = await _remote.getBranches();
+      if (isClosed) return;
       emit(BranchSuccess(branches));
     } catch (e) {
+      if (isClosed) return;
       emit(BranchError(e.toString()));
     }
   }

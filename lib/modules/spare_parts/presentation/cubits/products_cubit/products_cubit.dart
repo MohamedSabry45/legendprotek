@@ -15,6 +15,7 @@ class ProductsCubit extends Cubit<ProductsState> {
     int businessId = 1,
     int locationId = 1,
   }) async {
+    if (isClosed) return;
     emit(const ProductsLoading());
     try {
       final products = await _remote.getProducts(
@@ -23,8 +24,10 @@ class ProductsCubit extends Cubit<ProductsState> {
         businessId: businessId,
         locationId: locationId,
       );
+      if (isClosed) return;
       emit(ProductsSuccess(products));
     } catch (e) {
+      if (isClosed) return;
       emit(ProductsError(e.toString()));
     }
   }

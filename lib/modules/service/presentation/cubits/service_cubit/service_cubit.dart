@@ -18,20 +18,25 @@ class ServiceCubit extends Cubit<ServiceState> {
   }
 
   Future<void> load({required int locationId}) async {
+    if (isClosed) return;
     emit(ServiceLoading());
     try {
       if (await _isGuestMode()) {
+        if (isClosed) return;
         emit(ServiceSuccess(locationId: locationId, services: []));
         return;
       }
       final services = await _remote.getServices(locationId: locationId);
+      if (isClosed) return;
       emit(ServiceSuccess(locationId: locationId, services: services));
     } catch (e) {
+      if (isClosed) return;
       emit(ServiceError(e.toString()));
     }
   }
 
   void clear() {
+    if (isClosed) return;
     emit(ServiceInitial());
   }
 }

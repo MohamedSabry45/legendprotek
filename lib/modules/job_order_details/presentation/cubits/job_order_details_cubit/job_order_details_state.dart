@@ -11,10 +11,7 @@ class JobOrderDetailsSuccess extends JobOrderDetailsState {
   final JobOrderDetailsResponseModel details;
   final List<JobOrderStatusModel> statuses;
 
-  JobOrderDetailsSuccess({
-    required this.details,
-    required this.statuses,
-  });
+  JobOrderDetailsSuccess({required this.details, required this.statuses});
 }
 
 class JobOrderDetailsError extends JobOrderDetailsState {

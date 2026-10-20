@@ -15,7 +15,8 @@ class SocialUpdateMobileScreen extends StatefulWidget {
   const SocialUpdateMobileScreen({super.key});
 
   @override
-  State<SocialUpdateMobileScreen> createState() => _SocialUpdateMobileScreenState();
+  State<SocialUpdateMobileScreen> createState() =>
+      _SocialUpdateMobileScreenState();
 }
 
 class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
@@ -35,14 +36,25 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
         return AlertDialog(
           backgroundColor: const Color(0xFF0B0F1A),
           title: Text(
-            'Restore account',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            'auth.restore_account'.tr(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          content: Text(message, style: const TextStyle(color: Colors.white70)),
+          content: Text(
+            message.trim().isEmpty
+                ? 'auth.restore_account_message'.tr()
+                : message,
+            style: const TextStyle(color: Colors.white70),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text('menu.no'.tr(), style: const TextStyle(color: Colors.white70)),
+              child: Text(
+                'menu.no'.tr(),
+                style: const TextStyle(color: Colors.white70),
+              ),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(ctx).pop(true),
@@ -81,14 +93,19 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
           backgroundColor: const Color(0xFF0B0F1A),
           title: Text(
             'auth.is_this_your_account_title'.tr(),
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                message.isNotEmpty ? message : 'auth.phone_already_linked_message'.tr(),
+                message.isNotEmpty
+                    ? message
+                    : 'auth.phone_already_linked_message'.tr(),
                 style: const TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 16),
@@ -115,8 +132,13 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
                       style: const TextStyle(color: Colors.white70),
                     ),
                     Text(
-                      existingUser['phone']?.toString() ?? existingUser['mobile']?.toString() ?? '',
-                      style: const TextStyle(color: Colors.white54, fontSize: 12),
+                      existingUser['phone']?.toString() ??
+                          existingUser['mobile']?.toString() ??
+                          '',
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -146,7 +168,10 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
                     ),
                     Text(
                       pendingSocialUser['email']?.toString() ?? email,
-                      style: const TextStyle(color: Colors.white54, fontSize: 12),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -156,7 +181,10 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text('menu.no'.tr(), style: const TextStyle(color: Colors.white70)),
+              child: Text(
+                'menu.no'.tr(),
+                style: const TextStyle(color: Colors.white70),
+              ),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(ctx).pop(true),
@@ -198,7 +226,9 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
     final medium = map['medium']?.toString() ?? '';
     final uniqueId = map['unique_id']?.toString() ?? '';
     final userIdRaw = map['user_id'];
-    final userId = userIdRaw == null ? null : int.tryParse(userIdRaw.toString());
+    final userId = userIdRaw == null
+        ? null
+        : int.tryParse(userIdRaw.toString());
 
     final cubit = SocialAuthCubit.get(context);
 
@@ -218,7 +248,7 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
           Future.delayed(const Duration(milliseconds: 300), () {
             Navigator.pushNamedAndRemoveUntil(
               context,
-              RoutesName.chooseCarScreen,
+              RoutesName.homeScreen,
               (route) => false,
             );
           });
@@ -232,13 +262,19 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
           }
           Future.microtask(() {
             if (!mounted) return;
-            _confirmRestoreDeletedAccount(userId: state.userId, message: state.message);
+            _confirmRestoreDeletedAccount(
+              userId: state.userId,
+              message: Toasters.cleanError(state.message) ??
+                  'auth.restore_account_message'.tr(),
+            );
           });
           return;
         }
 
         if (state is SocialAuthOwnershipRequired) {
-          print('🔍 SocialUpdateMobileScreen - Received SocialAuthOwnershipRequired state');
+          print(
+            '🔍 SocialUpdateMobileScreen - Received SocialAuthOwnershipRequired state',
+          );
           if (_dialogShown) {
             Navigator.of(context, rootNavigator: true).maybePop();
             _dialogShown = false;
@@ -249,7 +285,8 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
             _confirmOwnership(
               existingUserId: state.existingUserId,
               phone: state.phone,
-              message: state.message,
+              message: Toasters.cleanError(state.message) ??
+                  'auth.restore_account_message'.tr(),
               existingUser: state.existingUser,
               pendingSocialUser: state.pendingSocialUser,
               email: email,
@@ -287,7 +324,10 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
             Navigator.of(context, rootNavigator: true).maybePop();
             _dialogShown = false;
           }
-          Toasters.show(state.message);
+          Toasters.errorFrom(
+            state.message,
+            fallbackKey: 'auth.update_mobile_failed',
+          );
           return;
         }
       },
@@ -306,11 +346,7 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.black,
-                Color(0xFF050505),
-                Color(0xFF0A0A0A),
-              ],
+              colors: [Colors.black, Color(0xFF050505), Color(0xFF0A0A0A)],
             ),
           ),
           child: SafeArea(
@@ -318,9 +354,14 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Card(
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
+                  ),
                   child: Form(
                     key: formKey,
                     child: Column(
@@ -360,7 +401,10 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
                         Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFF050505),
-                            border: Border.all(color: const Color(0xFF0A0A0A), width: 2),
+                            border: Border.all(
+                              color: const Color(0xFF0A0A0A),
+                              width: 2,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: TextFormField(
@@ -382,10 +426,16 @@ class _SocialUpdateMobileScreenState extends State<SocialUpdateMobileScreen> {
                               filled: true,
                               fillColor: const Color(0xFF050505),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                               prefixIcon: const Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Icon(Icons.phone_android, color: Colors.white70),
+                                child: Icon(
+                                  Icons.phone_android,
+                                  color: Colors.white70,
+                                ),
                               ),
                             ),
                           ),

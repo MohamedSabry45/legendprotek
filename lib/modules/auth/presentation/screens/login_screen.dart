@@ -94,10 +94,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
             if (state is LoginSuccess) {
               Navigator.of(context, rootNavigator: true).maybePop();
+              Toasters.success('auth.login_success'.tr());
               Future.delayed(const Duration(seconds: 1), () {
                 Navigator.pushNamedAndRemoveUntil(
                   context,
-                  RoutesName.chooseCarScreen,
+                  RoutesName.homeScreen,
                   (route) => false,
                 );
               });
@@ -106,7 +107,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
             if (state is LoginError) {
               Navigator.of(context, rootNavigator: true).maybePop();
-              Toasters.show(state.message);
+              if (Toasters.isNetworkError(state.message)) {
+                Toasters.error('common.network_error'.tr());
+              } else {
+                Toasters.error('auth.invalid_credentials'.tr());
+              }
               return;
             }
           },
@@ -125,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Future.delayed(const Duration(milliseconds: 300), () {
                 Navigator.pushNamedAndRemoveUntil(
                   context,
-                  RoutesName.chooseCarScreen,
+                  RoutesName.homeScreen,
                   (route) => false,
                 );
               });
@@ -161,9 +166,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 EnterMobileActions.confirmRestoreDeletedAccount(
                   context: context,
                   userId: state.userId,
-                  message: state.message,
-                  restoreDeletedAccount: (userId) =>
-                      SocialAuthCubit.get(context).restoreDeletedAccount(userId: userId),
+                  message: Toasters.cleanError(state.message) ??
+                      'auth.restore_account_message'.tr(),
+                  restoreDeletedAccount: (userId) => SocialAuthCubit.get(
+                    context,
+                  ).restoreDeletedAccount(userId: userId),
                   retryCheckPhone: (mobile) async {},
                 );
               });
@@ -175,7 +182,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 Navigator.of(context, rootNavigator: true).maybePop();
                 _dialogShown = false;
               }
-              Toasters.show(state.message);
+              Toasters.errorFrom(
+                state.message,
+                fallbackKey: 'auth.social_failed',
+              );
               return;
             }
           },
@@ -196,11 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.black,
-                Color(0xFF050505),
-                Color(0xFF0A0A0A),
-              ],
+              colors: [Colors.black, Color(0xFF050505), Color(0xFF0A0A0A)],
             ),
           ),
           child: SafeArea(
@@ -208,9 +214,14 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Card(
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
+                  ),
                   child: Form(
                     key: formKey,
                     child: Column(
@@ -227,7 +238,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            border: Border.all(color: Colors.grey.shade300, width: 2),
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                              width: 2,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: TextFormField(
@@ -248,7 +262,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               filled: true,
                               fillColor: Colors.white,
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                             ),
                             validator: ValidationForm.nameValidator,
                           ),
@@ -258,7 +275,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            border: Border.all(color: Colors.grey.shade300, width: 2),
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                              width: 2,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: TextFormField(
@@ -279,10 +299,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               filled: true,
                               fillColor: Colors.white,
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _isObscured ? Icons.visibility_off : Icons.visibility,
+                                  _isObscured
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                   color: Colors.black54,
                                 ),
                                 onPressed: () {
@@ -324,7 +349,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: ElevatedButton(
                             onPressed: () {
                               if (formKey.currentState!.validate()) {
-                                authCubit.login(mobile: _mobileController.text, password: _passwordController.text);
+                                authCubit.login(
+                                  mobile: _mobileController.text,
+                                  password: _passwordController.text,
+                                );
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -368,18 +396,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         // or divider - White text for visibility on dark
                         Row(
                           children: [
-                            Expanded(child: Divider(color: Colors.grey.shade600)),
+                            Expanded(
+                              child: Divider(color: Colors.grey.shade600),
+                            ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
                               child: Text(
-                                'or',
+                                'auth.or'.tr(),
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
                                 ),
                               ),
                             ),
-                            Expanded(child: Divider(color: Colors.grey.shade600)),
+                            Expanded(
+                              child: Divider(color: Colors.grey.shade600),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 24),
@@ -388,14 +422,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: double.infinity,
                           height: 52,
                           child: OutlinedButton(
-                            onPressed: () => EnterMobileActions.signInWithGoogle(
-                              context: context,
-                              onStartLoading: _startBlockingDialog,
-                              onStopLoading: _stopBlockingDialog,
-                            ),
+                            onPressed: () =>
+                                EnterMobileActions.signInWithGoogle(
+                                  context: context,
+                                  onStartLoading: _startBlockingDialog,
+                                  onStopLoading: _stopBlockingDialog,
+                                ),
                             style: OutlinedButton.styleFrom(
                               backgroundColor: Colors.white,
-                              foregroundColor: const Color.fromARGB(255, 230, 228, 228),
+                              foregroundColor: const Color.fromARGB(
+                                255,
+                                230,
+                                228,
+                                228,
+                              ),
                               side: BorderSide(color: Colors.grey.shade400),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -409,13 +449,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                   height: 24,
                                   width: 24,
                                   errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(Icons.g_mobiledata, size: 24, color: const Color(0xFFD4AF37));
+                                    return const Icon(
+                                      Icons.g_mobiledata,
+                                      size: 24,
+                                      color: const Color(0xFFD4AF37),
+                                    );
                                   },
                                 ),
                                 const SizedBox(width: 12),
-                                const Text(
-                                  'Continue with Google',
-                                  style: TextStyle(
+                                Text(
+                                  'auth.continue_google'.tr(),
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
                                     color: Colors.black,
@@ -432,11 +476,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: double.infinity,
                             height: 52,
                             child: OutlinedButton(
-                              onPressed: () => EnterMobileActions.signInWithApple(
-                                context: context,
-                                onStartLoading: _startBlockingDialog,
-                                onStopLoading: _stopBlockingDialog,
-                              ),
+                              onPressed: () =>
+                                  EnterMobileActions.signInWithApple(
+                                    context: context,
+                                    onStartLoading: _startBlockingDialog,
+                                    onStopLoading: _stopBlockingDialog,
+                                  ),
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: Colors.black,
                                 foregroundColor: Colors.white,
@@ -453,13 +498,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 24,
                                     width: 24,
                                     errorBuilder: (context, error, stackTrace) {
-                                      return const Icon(Icons.apple, size: 24, color: Colors.white);
+                                      return const Icon(
+                                        Icons.apple,
+                                        size: 24,
+                                        color: Colors.white,
+                                      );
                                     },
                                   ),
                                   const SizedBox(width: 12),
-                                  const Text(
-                                    'Continue with Apple',
-                                    style: TextStyle(
+                                  Text(
+                                    'auth.continue_apple'.tr(),
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -474,7 +523,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         GestureDetector(
                           onTap: () async {
                             await CacheHelper.clearSession();
-                            await CacheHelper.saveData(key: PrefKeys.kIsGuestMode, value: true);
+                            await CacheHelper.saveData(
+                              key: PrefKeys.kIsGuestMode,
+                              value: true,
+                            );
                             if (mounted) {
                               Navigator.pushNamedAndRemoveUntil(
                                 context,
@@ -484,22 +536,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                           },
                           child: Center(
-                            child: RichText(
-                              text: TextSpan(
-                                text: 'Continue as ',
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text: 'Guest',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
+                            child: Text(
+                              'auth.continue_as_guest'.tr(),
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:reservation_workshop/constants/app_constants.dart';
 import 'package:reservation_workshop/core/network/local/cache_helper.dart';
 import 'package:reservation_workshop/core/utils/strings/prefkeys.dart';
+import 'package:reservation_workshop/modules/notifications/data/datasources/fcm_token_remote_datasource.dart';
 
 import '../../../data/datasources/auth_remote_datasource.dart';
 import 'social_auth_state.dart';
@@ -200,6 +203,7 @@ class SocialAuthCubit extends Cubit<SocialAuthState> {
       if (res.token.trim().isNotEmpty) {
         AppConstants.token = res.token;
         await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: res.token);
+        unawaited(FcmTokenRemoteDataSource.registerCurrentToken());
         if (isClosed) return;
         _safeEmit(SocialAuthSuccess(res.token));
         return;
@@ -305,6 +309,7 @@ class SocialAuthCubit extends Cubit<SocialAuthState> {
       if (res.token.trim().isNotEmpty) {
         AppConstants.token = res.token;
         await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: res.token);
+        unawaited(FcmTokenRemoteDataSource.registerCurrentToken());
         if (isClosed) return;
         _safeEmit(SocialAuthSuccess(res.token));
         return;
@@ -394,6 +399,7 @@ class SocialAuthCubit extends Cubit<SocialAuthState> {
       if (res.token.trim().isNotEmpty) {
         AppConstants.token = res.token;
         await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: res.token);
+        unawaited(FcmTokenRemoteDataSource.registerCurrentToken());
         if (isClosed) return;
         _safeEmit(SocialAuthSuccess(res.token));
         return;
@@ -484,6 +490,7 @@ class SocialAuthCubit extends Cubit<SocialAuthState> {
       if (res.token.trim().isNotEmpty) {
         AppConstants.token = res.token;
         await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: res.token);
+        unawaited(FcmTokenRemoteDataSource.registerCurrentToken());
         if (isClosed) return;
         _safeEmit(SocialAuthSuccess(res.token));
         return;

@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/core/widgets/app_header.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/modules/notifications/data/models/maintenance_notification_model.dart';
 import 'package:reservation_workshop/modules/notifications/presentation/cubit/maintenance_notifications_cubit.dart';
 import 'package:reservation_workshop/modules/notifications/presentation/cubit/maintenance_notifications_state.dart';
@@ -12,10 +13,13 @@ class MaintenanceNotificationsScreen extends StatefulWidget {
   const MaintenanceNotificationsScreen({super.key});
 
   @override
-  State<MaintenanceNotificationsScreen> createState() => _MaintenanceNotificationsScreenState();
+  State<MaintenanceNotificationsScreen> createState() =>
+      _MaintenanceNotificationsScreenState();
 }
 
-class _MaintenanceNotificationsScreenState extends State<MaintenanceNotificationsScreen> with SingleTickerProviderStateMixin {
+class _MaintenanceNotificationsScreenState
+    extends State<MaintenanceNotificationsScreen>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
   @override
@@ -87,89 +91,104 @@ class _MaintenanceNotificationsScreenState extends State<MaintenanceNotification
               ),
               const SizedBox(height: 8),
               Expanded(
-                child: BlocBuilder<MaintenanceNotificationsCubit, MaintenanceNotificationsState>(
-                  builder: (context, state) {
-                    if (state is MaintenanceNotificationsLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                child:
+                    BlocBuilder<
+                      MaintenanceNotificationsCubit,
+                      MaintenanceNotificationsState
+                    >(
+                      builder: (context, state) {
+                        if (state is MaintenanceNotificationsLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
 
-                    if (state is MaintenanceNotificationsError) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            state.message,
-                            textAlign: TextAlign.center,
-                            style: textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.grey7,
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    final items = state is MaintenanceNotificationsSuccess ? state.notifications : const <MaintenanceNotificationModel>[];
-                    final unread = items.where((n) => !n.isRead).toList();
-                    final read = items.where((n) => n.isRead).toList();
-
-                    if (items.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'notifications.empty'.tr(),
-                          style: textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.grey7,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.grey7,
-                                  ),
+                        if (state is MaintenanceNotificationsError) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text(
+                                Toasters.displayMessage(state.message),
+                                textAlign: TextAlign.center,
+                                style: textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.grey7,
                                 ),
                               ),
-                              TextButton(
-                                onPressed: () {
-                                  context.read<MaintenanceNotificationsCubit>().markAllRead();
-                                },
-                                child: Text('notifications.mark_all_read'.tr()),
+                            ),
+                          );
+                        }
+
+                        final items = state is MaintenanceNotificationsSuccess
+                            ? state.notifications
+                            : const <MaintenanceNotificationModel>[];
+                        final unread = items.where((n) => !n.isRead).toList();
+                        final read = items.where((n) => n.isRead).toList();
+
+                        if (items.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'notifications.empty'.tr(),
+                              style: textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.grey7,
                               ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: TabBarView(
-                            controller: _tabController,
-                            children: [
-                              _NotificationsList(
-                                items: unread,
-                                emptyText: 'notifications.empty_unread'.tr(),
-                                onMarkRead: (id) => context.read<MaintenanceNotificationsCubit>().markRead(notificationIds: [id]),
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '',
+                                      style: textTheme.bodySmall?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.grey7,
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      context
+                                          .read<MaintenanceNotificationsCubit>()
+                                          .markAllRead();
+                                    },
+                                    child: Text(
+                                      'notifications.mark_all_read'.tr(),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              _NotificationsList(
-                                items: read,
-                                emptyText: 'notifications.empty_read'.tr(),
-                                onMarkRead: null,
+                            ),
+                            Expanded(
+                              child: TabBarView(
+                                controller: _tabController,
+                                children: [
+                                  _NotificationsList(
+                                    items: unread,
+                                    emptyText: 'notifications.empty_unread'
+                                        .tr(),
+                                    onMarkRead: (id) => context
+                                        .read<MaintenanceNotificationsCubit>()
+                                        .markRead(notificationIds: [id]),
+                                  ),
+                                  _NotificationsList(
+                                    items: read,
+                                    emptyText: 'notifications.empty_read'.tr(),
+                                    onMarkRead: null,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
               ),
             ],
           ),
@@ -213,7 +232,9 @@ class _NotificationsList extends StatelessWidget {
         final item = items[index];
         return _NotificationTile(
           item: item,
-          onTap: onMarkRead == null || item.isRead ? null : () => onMarkRead!(item.id),
+          onTap: onMarkRead == null || item.isRead
+              ? null
+              : () => onMarkRead!(item.id),
         );
       },
     );
@@ -232,10 +253,12 @@ class _NotificationTile extends StatelessWidget {
     final payload = item.data;
 
     final title = (payload?.jobSheetNo?.trim().isNotEmpty == true)
-        ? 'ورقة عمل: ${payload!.jobSheetNo}'
-        : 'إشعار صيانة';
+        ? 'notifications.new_work_order'.tr(args: [payload!.jobSheetNo!])
+        : 'notifications.new_notification'.tr();
 
-    final subtitle = (payload?.action?.trim().isNotEmpty == true) ? payload!.action! : item.type;
+    final subtitle = (payload?.action?.trim().isNotEmpty == true)
+        ? payload!.action!
+        : item.type;
 
     return Material(
       color: Colors.transparent,
@@ -247,9 +270,7 @@ class _NotificationTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.brandSurface,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: AppColors.brandOutline,
-            ),
+            border: Border.all(color: AppColors.brandOutline),
           ),
           child: Row(
             children: [
@@ -257,7 +278,9 @@ class _NotificationTile extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: item.isRead ? const Color(0xFFE5E7EB) : AppColors.brandPrimarySoft,
+                  color: item.isRead
+                      ? const Color(0xFFE5E7EB)
+                      : AppColors.brandPrimarySoft,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/style/app_colors.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/modules/spare_parts/domain/entities/taxonomy_category.dart';
 import 'package:reservation_workshop/modules/spare_parts/domain/entities/spare_product.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_cubit.dart';
@@ -13,13 +15,11 @@ import 'package:reservation_workshop/modules/spare_parts/presentation/screens/sp
 class SparePartsProductsScreen extends StatefulWidget {
   final TaxonomyCategory category;
 
-  const SparePartsProductsScreen({
-    super.key,
-    required this.category,
-  });
+  const SparePartsProductsScreen({super.key, required this.category});
 
   @override
-  State<SparePartsProductsScreen> createState() => _SparePartsProductsScreenState();
+  State<SparePartsProductsScreen> createState() =>
+      _SparePartsProductsScreenState();
 }
 
 class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
@@ -31,7 +31,11 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       try {
-        context.read<ProductsCubit>().load(perPage: 30, businessId: 1, locationId: 1);
+        context.read<ProductsCubit>().load(
+          perPage: 30,
+          businessId: 1,
+          locationId: 1,
+        );
       } catch (_) {}
     });
   }
@@ -42,7 +46,10 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
 
   void _addToCart(SpareProduct product) {
     final variationId = product.id;
-    context.read<CartCubit>().addProduct(product: product, variationId: variationId);
+    context.read<CartCubit>().addProduct(
+      product: product,
+      variationId: variationId,
+    );
   }
 
   void _openCart() {
@@ -59,16 +66,15 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
           builder: (_) => MultiBlocProvider(
             providers: [
               BlocProvider<CartCubit>.value(value: context.read<CartCubit>()),
-              if (customerInfo != null) BlocProvider<CustomerInfoCubit>.value(value: customerInfo),
+              if (customerInfo != null)
+                BlocProvider<CustomerInfoCubit>.value(value: customerInfo),
             ],
             child: const SparePartsCartScreen(),
           ),
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      Toasters.errorFrom(e);
     }
   }
 
@@ -86,7 +92,12 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
         return SafeArea(
           top: false,
           child: Padding(
-            padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + MediaQuery.of(ctx).viewInsets.bottom),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              12,
+              16,
+              16 + MediaQuery.of(ctx).viewInsets.bottom,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -125,7 +136,10 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
                     child: Text(
                       'No compatibility data found',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.grey7),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.grey7,
+                      ),
                     ),
                   )
                 else
@@ -152,11 +166,11 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
                             fontWeight: FontWeight.w700,
                             color: AppColors.brandDark,
                           ),
-                          columns: const [
-                            DataColumn(label: Text('Brand')),
-                            DataColumn(label: Text('Model')),
-                            DataColumn(label: Text('From')),
-                            DataColumn(label: Text('To')),
+                          columns: [
+                            DataColumn(label: Text('spare_parts.brand'.tr())),
+                            DataColumn(label: Text('spare_parts.model'.tr())),
+                            DataColumn(label: Text('spare_parts.from'.tr())),
+                            DataColumn(label: Text('spare_parts.to'.tr())),
                           ],
                           rows: items
                               .map(
@@ -164,7 +178,9 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
                                   cells: [
                                     DataCell(Text(c.brand)),
                                     DataCell(Text(c.model)),
-                                    DataCell(Text(c.fromYear?.toString() ?? '-')),
+                                    DataCell(
+                                      Text(c.fromYear?.toString() ?? '-'),
+                                    ),
                                     DataCell(Text(c.toYear?.toString() ?? '-')),
                                   ],
                                 ),
@@ -196,7 +212,9 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
   }
 
   List<SpareProduct> _filter({required List<SpareProduct> products}) {
-    final allowed = _selectedSub == null ? _collectIds(widget.category) : _collectIds(_selectedSub!);
+    final allowed = _selectedSub == null
+        ? _collectIds(widget.category)
+        : _collectIds(_selectedSub!);
     return products.where((p) {
       final subId = p.subCategoryId;
       if (subId != null) {
@@ -238,7 +256,10 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
         foregroundColor: Colors.black87,
         title: Text(
           category.name,
-          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w900),
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w900,
+          ),
         ),
         actions: [
           BlocBuilder<CartCubit, CartState>(
@@ -264,7 +285,8 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    widget.category.logo != null && widget.category.logo!.isNotEmpty
+                    widget.category.logo != null &&
+                            widget.category.logo!.isNotEmpty
                         ? Image.network(
                             widget.category.logo!,
                             fit: BoxFit.cover,
@@ -362,14 +384,21 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            state.message,
+                            Toasters.displayMessage(state.message),
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: AppColors.grey7, fontWeight: FontWeight.w700),
+                            style: const TextStyle(
+                              color: AppColors.grey7,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                           const SizedBox(height: 12),
                           ElevatedButton(
-                            onPressed: () => context.read<ProductsCubit>().load(perPage: 30, businessId: 1, locationId: 1),
-                            child: const Text('Retry'),
+                            onPressed: () => context.read<ProductsCubit>().load(
+                              perPage: 30,
+                              businessId: 1,
+                              locationId: 1,
+                            ),
+                            child: Text('common.retry'.tr()),
                           ),
                         ],
                       ),
@@ -377,13 +406,18 @@ class _SparePartsProductsScreenState extends State<SparePartsProductsScreen> {
                   );
                 }
 
-                final all = state is ProductsSuccess ? state.products : const <SpareProduct>[];
+                final all = state is ProductsSuccess
+                    ? state.products
+                    : const <SpareProduct>[];
                 final filtered = _filter(products: all);
                 if (filtered.isEmpty) {
                   return const Center(
                     child: Text(
                       'No products found',
-                      style: TextStyle(fontWeight: FontWeight.w800, color: Colors.black87),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black87,
+                      ),
                     ),
                   );
                 }
@@ -521,10 +555,7 @@ class _ProductCard extends StatelessWidget {
                     topLeft: Radius.circular(20),
                     bottomLeft: Radius.circular(20),
                   ),
-                  border: Border.all(
-                    color: Colors.grey.shade200,
-                    width: 0.5,
-                  ),
+                  border: Border.all(color: Colors.grey.shade200, width: 0.5),
                 ),
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
@@ -592,7 +623,7 @@ class _ProductCard extends StatelessWidget {
                         ),
                 ),
               ),
-              
+
               // Product Details
               Expanded(
                 child: Padding(
@@ -618,13 +649,18 @@ class _ProductCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.brandPrimary,
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.brandPrimary.withOpacity(0.3),
+                                  color: AppColors.brandPrimary.withOpacity(
+                                    0.3,
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 4),
                                 ),
@@ -641,33 +677,33 @@ class _ProductCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 12),
-                      
+
                       // Part Number
                       _InfoRow(
                         label: 'Part Number',
                         value: sku,
                         labelColor: AppColors.grey7,
                       ),
-                      
+
                       const SizedBox(height: 8),
-                      
+
                       // Brand
                       _InfoRow(
                         label: 'Brand',
-                        value: (brand ?? '').trim().isEmpty ? '-' : brand!.trim(),
+                        value: (brand ?? '').trim().isEmpty
+                            ? '-'
+                            : brand!.trim(),
                         labelColor: AppColors.grey7,
                       ),
-                      
+
                       const Spacer(),
-                      
+
                       // Add button only
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          _AddButton(onTap: onAdd),
-                        ],
+                        children: [_AddButton(onTap: onAdd)],
                       ),
                     ],
                   ),
@@ -803,7 +839,10 @@ class _CartActionButton extends StatelessWidget {
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 220),
         transitionBuilder: (child, anim) {
-          final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutBack);
+          final curved = CurvedAnimation(
+            parent: anim,
+            curve: Curves.easeOutBack,
+          );
           return ScaleTransition(
             scale: Tween<double>(begin: 1.0, end: 1.15).animate(curved),
             child: child,
@@ -828,11 +867,17 @@ class _CartActionButton extends StatelessWidget {
                   },
                   child: Container(
                     key: ValueKey<int>(count),
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.brandPrimary,
                       borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.white.withOpacity(0.9), width: 1.2),
+                      border: Border.all(
+                        color: AppColors.white.withOpacity(0.9),
+                        width: 1.2,
+                      ),
                     ),
                     child: Text(
                       count > 99 ? '99+' : '$count',

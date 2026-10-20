@@ -39,6 +39,7 @@ dependencies:
   dio: ^5.4.3+1
   video_player: ^2.8.1
   card_swiper: ^3.0.1
+  geocoding: ^5.0.0
 
 dev_dependencies:
   flutter_test:
@@ -73,9 +74,9 @@ flutter_native_splash:
   android: true
   ios: true
   web: false
-  color: "#FFFFFF"
+  color: "#000000"
   background_image: assets/images/splash_screen.png
 
   android_12:
     image: assets/images/splash_screen.png
-    icon_background_color: "#FFFFFF"
+    icon_background_color: "#000000"

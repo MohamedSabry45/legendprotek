@@ -4,12 +4,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
 
 import 'package:reservation_workshop/config/style/app_colors.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/core/widgets/app_card.dart';
 import 'package:reservation_workshop/core/widgets/logo_image_widget.dart';
 import 'package:reservation_workshop/modules/job_order_details/presentation/cubits/job_order_details_cubit/job_order_details_cubit.dart';
 import 'package:reservation_workshop/modules/job_order_details/presentation/cubits/job_order_details_cubit/job_order_details_state.dart';
 
 import 'job_order_details_args.dart';
+import '../widgets/job_order_attachments_widget.dart';
 import '../widgets/spare_parts_approval_widget.dart';
 
 class JobOrderDetailsScreen extends StatelessWidget {
@@ -27,56 +29,38 @@ class JobOrderDetailsScreen extends StatelessWidget {
     return Color(value);
   }
 
-  Widget _fieldBox(String value) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0A0A0A),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE6E8EC)),
-      ),
-      child: Text(
-        value.trim().isEmpty ? '-' : value,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
+  Widget _fieldBox(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: AppColors.grey7,
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _infoRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
+        const SizedBox(height: 4),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A0A0A),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE6E8EC)),
+          ),
+          child: Text(
+            value.trim().isEmpty ? '-' : value,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              value.trim().isEmpty ? '-' : value,
-              textAlign: TextAlign.end,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.grey7,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -99,9 +83,9 @@ class JobOrderDetailsScreen extends StatelessWidget {
       height: 48,
       color: Colors.black,
       alignment: Alignment.center,
-      child: const Text(
-        'customerPortal',
-        style: TextStyle(
+      child: Text(
+        'common.customer_portal'.tr(),
+        style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w800,
           color: const Color(0xFF0A0A0A),
@@ -197,7 +181,9 @@ class JobOrderDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      numbers.toString().trim().isEmpty ? '-' : numbers.toString().trim(),
+                      numbers.toString().trim().isEmpty
+                          ? '-'
+                          : numbers.toString().trim(),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w900,
@@ -211,7 +197,9 @@ class JobOrderDetailsScreen extends StatelessWidget {
                     height: 32,
                     alignment: Alignment.center,
                     child: Text(
-                      letters.toString().trim().isEmpty ? '-' : letters.toString().trim(),
+                      letters.toString().trim().isEmpty
+                          ? '-'
+                          : letters.toString().trim(),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w900,
@@ -231,19 +219,23 @@ class JobOrderDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)?.settings.arguments;
-    final JobOrderDetailsArgs? detailsArgs = args is JobOrderDetailsArgs ? args : null;
+    final JobOrderDetailsArgs? detailsArgs = args is JobOrderDetailsArgs
+        ? args
+        : null;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
       if (detailsArgs == null) return;
-      context.read<JobOrderDetailsCubit>().load(
-            jobOrderId: detailsArgs.jobOrderId,
-            phoneLast4: detailsArgs.phoneLast4,
-          );
+      final cubit = context.read<JobOrderDetailsCubit>();
+      if (cubit.state is! JobOrderDetailsInitial) return;
+      cubit.load(
+        jobOrderId: detailsArgs.jobOrderId,
+        phoneLast4: detailsArgs.phoneLast4,
+      );
     });
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.black,
       body: Column(
         children: [
           _topBar(),
@@ -252,9 +244,9 @@ class JobOrderDetailsScreen extends StatelessWidget {
               child: BlocBuilder<JobOrderDetailsCubit, JobOrderDetailsState>(
                 builder: (context, state) {
                   if (detailsArgs == null) {
-                    return const Center(
+                    return Center(
                       child: Text(
-                        'بيانات غير صالحة',
+                        'job_order.details.invalid_data'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -273,7 +265,7 @@ class JobOrderDetailsScreen extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Text(
-                          state.message,
+                          Toasters.displayMessage(state.message),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 12,
@@ -292,162 +284,244 @@ class JobOrderDetailsScreen extends StatelessWidget {
                   final details = state.details;
                   final car = details.carInfo;
                   final statuses = [...state.statuses];
-                  statuses.sort((a, b) => (a.sortOrder ?? 9999).compareTo(b.sortOrder ?? 9999));
+                  statuses.sort(
+                    (a, b) =>
+                        (a.sortOrder ?? 9999).compareTo(b.sortOrder ?? 9999),
+                  );
 
                   return Directionality(
-                    textDirection: ui.TextDirection.rtl,
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 360),
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const SizedBox(height: 6),
-                              const LogoImageWidget(),
-                              const SizedBox(height: 10),
-                              AppCard(
-                                padding: const EdgeInsets.all(16),
-                                borderRadius: 16,
-                                borderColor: const Color(0xFF0A0A0A),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _sectionTitle('job_order.details.customer_data'.tr()),
-                                    const SizedBox(height: 8),
-                                    _fieldBox(car?.name ?? '-'),
-                                    const SizedBox(height: 10),
-                                    _fieldBox(car?.mobile ?? '-'),
-                                    const SizedBox(height: 10),
-                                    _fieldBox(details.jobSheetNo),
-                                    const SizedBox(height: 10),
-                                    _fieldBox(car?.entryDate ?? '-'),
-                                  ],
+                    textDirection: context.locale.languageCode == 'ar'
+                        ? ui.TextDirection.rtl
+                        : ui.TextDirection.ltr,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 6),
+                          const LogoImageWidget(),
+                          const SizedBox(height: 10),
+                          JobOrderAttachmentsWidget(media: details.media),
+                          if (details.media.isNotEmpty)
+                            const SizedBox(height: 14),
+                          AppCard(
+                            padding: const EdgeInsets.all(16),
+                            borderRadius: 16,
+                            backgroundColor: const Color(0xFF050505),
+                            borderColor: const Color(0xFF0A0A0A),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _sectionTitle(
+                                  'job_order.details.customer_data'.tr(),
                                 ),
-                              ),
-                              const SizedBox(height: 14),
-                              AppCard(
-                                padding: const EdgeInsets.all(16),
-                                borderRadius: 16,
-                                borderColor: const Color(0xFF0A0A0A),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _sectionTitle('job_order.details.car_data'.tr()),
-                                    const SizedBox(height: 8),
-                                    _fieldBox(car?.catname ?? '-'),
-                                    const SizedBox(height: 10),
-                                    _fieldBox(car?.model ?? '-'),
-                                    const SizedBox(height: 10),
-                                    _fieldBox(car?.year ?? '-'),
-                                    const SizedBox(height: 10),
-                                    _fieldBox(car?.chassisNumber ?? '-'),
-                                    const SizedBox(height: 10),
-                                    _fieldBox(car?.service ?? '-'),
-                                    const SizedBox(height: 14),
-                                    Center(child: _plateWidget(car?.plateNumber ?? '')),
-                                  ],
+                                const SizedBox(height: 8),
+                                _fieldBox(
+                                  'job_order.details.customer_name'.tr(),
+                                  car?.name ?? '-',
                                 ),
-                              ),
-                              const SizedBox(height: 14),
-                              AppCard(
-                                padding: const EdgeInsets.all(16),
-                                borderRadius: 16,
-                                borderColor: const Color(0xFF0A0A0A),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _sectionTitle('job_order.details.remaining_time'.tr()),
-                                    const SizedBox(height: 8),
-                                    _fieldBox(details.bookingStart),
-                                    const SizedBox(height: 10),
-                                    _fieldBox('${details.days} ${'job_order.details.units.day'.tr()}'),
-                                    const SizedBox(height: 10),
-                                    _fieldBox('${details.hours} ${'job_order.details.units.hour'.tr()}'),
-                                    const SizedBox(height: 10),
-                                    _fieldBox('${details.minutes} ${'job_order.details.units.minute'.tr()}'),
-                                    const SizedBox(height: 10),
-                                    _fieldBox('${details.seconds} ${'job_order.details.units.second'.tr()}'),
-                                  ],
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.mobile'.tr(),
+                                  car?.mobile ?? '-',
                                 ),
-                              ),
-                              const SizedBox(height: 14),
-                              AppCard(
-                                padding: const EdgeInsets.all(16),
-                                borderRadius: 16,
-                                borderColor: const Color(0xFF0A0A0A),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _sectionTitle('job_order.details.service_stages'.tr()),
-                                    const SizedBox(height: 6),
-                                    SizedBox(
-                                      height: (statuses.length <= 3) ? null : 198,
-                                      child: ListView.separated(
-                                        padding: EdgeInsets.zero,
-                                        physics: statuses.length <= 3
-                                            ? const NeverScrollableScrollPhysics()
-                                            : const BouncingScrollPhysics(),
-                                        itemCount: statuses.length,
-                                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                                        itemBuilder: (context, index) {
-                                          final s = statuses[index];
-                                          final isActive = s.id == details.statusId;
-                                          final indicatorColor = _tryParseHexColor(s.color) ?? const Color(0xFF9CA3AF);
-
-                                          return Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF050505),
-                                              borderRadius: BorderRadius.circular(14),
-                                              border: Border.all(color: const Color(0xFF0A0A0A)),
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    s.name.trim().isEmpty ? '-' : s.name,
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight: FontWeight.w800,
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  width: 22,
-                                                  height: 22,
-                                                  decoration: BoxDecoration(
-                                                    color: isActive ? indicatorColor : Colors.transparent,
-                                                    borderRadius: BorderRadius.circular(11),
-                                                    border: Border.all(
-                                                      color: indicatorColor,
-                                                      width: 2,
-                                                    ),
-                                                  ),
-                                                  child: isActive
-                                                      ? const Icon(
-                                                          Icons.check,
-                                                          size: 14,
-                                                          color: Colors.white,
-                                                        )
-                                                      : null,
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ],
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.job_sheet_no'.tr(),
+                                  details.jobSheetNo,
                                 ),
-                              ),
-                              const SizedBox(height: 14),
-                              SparePartsApprovalWidget(items: details.jobOrder),
-                            ],
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.entry_date'.tr(),
+                                  car?.entryDate ?? '-',
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 14),
+                          AppCard(
+                            padding: const EdgeInsets.all(16),
+                            borderRadius: 16,
+                            backgroundColor: const Color(0xFF050505),
+                            borderColor: const Color(0xFF0A0A0A),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _sectionTitle(
+                                  'job_order.details.car_data'.tr(),
+                                ),
+                                const SizedBox(height: 8),
+                                _fieldBox(
+                                  'job_order.details.car_name'.tr(),
+                                  car?.catname ?? '-',
+                                ),
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.model'.tr(),
+                                  car?.model ?? '-',
+                                ),
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.year'.tr(),
+                                  car?.year ?? '-',
+                                ),
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.chassis'.tr(),
+                                  car?.chassisNumber ?? '-',
+                                ),
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.service'.tr(),
+                                  car?.service ?? '-',
+                                ),
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.plate'.tr(),
+                                  car?.plateNumber ?? '-',
+                                ),
+                                const SizedBox(height: 14),
+                                Center(
+                                  child: _plateWidget(car?.plateNumber ?? ''),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          AppCard(
+                            padding: const EdgeInsets.all(16),
+                            borderRadius: 16,
+                            backgroundColor: const Color(0xFF050505),
+                            borderColor: const Color(0xFF0A0A0A),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _sectionTitle(
+                                  'job_order.details.remaining_time'.tr(),
+                                ),
+                                const SizedBox(height: 8),
+                                _fieldBox(
+                                  'job_order.details.booking_start'.tr(),
+                                  details.bookingStart,
+                                ),
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.days'.tr(),
+                                  '${details.days} ${'job_order.details.units.day'.tr()}',
+                                ),
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.hours'.tr(),
+                                  '${details.hours} ${'job_order.details.units.hour'.tr()}',
+                                ),
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.minutes'.tr(),
+                                  '${details.minutes} ${'job_order.details.units.minute'.tr()}',
+                                ),
+                                const SizedBox(height: 10),
+                                _fieldBox(
+                                  'job_order.details.seconds'.tr(),
+                                  '${details.seconds} ${'job_order.details.units.second'.tr()}',
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          AppCard(
+                            padding: const EdgeInsets.all(16),
+                            borderRadius: 16,
+                            backgroundColor: const Color(0xFF050505),
+                            borderColor: const Color(0xFF0A0A0A),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _sectionTitle(
+                                  'job_order.details.service_stages'.tr(),
+                                ),
+                                const SizedBox(height: 6),
+                                SizedBox(
+                                  height: (statuses.length <= 3) ? null : 198,
+                                  child: ListView.separated(
+                                    padding: EdgeInsets.zero,
+                                    physics: statuses.length <= 3
+                                        ? const NeverScrollableScrollPhysics()
+                                        : const BouncingScrollPhysics(),
+                                    itemCount: statuses.length,
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(height: 10),
+                                    itemBuilder: (context, index) {
+                                      final s = statuses[index];
+                                      final isActive = s.id == details.statusId;
+                                      final indicatorColor =
+                                          _tryParseHexColor(s.color) ??
+                                          const Color(0xFF9CA3AF);
+
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 14,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF050505),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(0xFF0A0A0A),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                s.name.trim().isEmpty
+                                                    ? '-'
+                                                    : s.name,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              width: 22,
+                                              height: 22,
+                                              decoration: BoxDecoration(
+                                                color: isActive
+                                                    ? indicatorColor
+                                                    : Colors.transparent,
+                                                borderRadius:
+                                                    BorderRadius.circular(11),
+                                                border: Border.all(
+                                                  color: indicatorColor,
+                                                  width: 2,
+                                                ),
+                                              ),
+                                              child: isActive
+                                                  ? const Icon(
+                                                      Icons.check,
+                                                      size: 14,
+                                                      color: Colors.white,
+                                                    )
+                                                  : null,
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          SparePartsApprovalWidget(
+                            items: details.jobOrder,
+                            token: details.token,
+                          ),
+                        ],
                       ),
                     ),
                   );

@@ -18,15 +18,19 @@ class JobOrdersCubit extends Cubit<JobOrdersState> {
   }
 
   Future<void> load() async {
+    if (isClosed) return;
     emit(JobOrdersLoading());
     try {
       if (await _isGuestMode()) {
+        if (isClosed) return;
         emit(JobOrdersSuccess([]));
         return;
       }
       final orders = await _remote.getCustomerJobOrders();
+      if (isClosed) return;
       emit(JobOrdersSuccess(orders));
     } catch (e) {
+      if (isClosed) return;
       emit(JobOrdersError(e.toString()));
     }
   }

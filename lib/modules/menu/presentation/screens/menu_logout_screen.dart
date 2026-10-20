@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'menu_placeholder_screen.dart';
 
@@ -7,6 +8,6 @@ class MenuLogoutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MenuPlaceholderScreen(title: 'تسجيل خروج');
+    return MenuPlaceholderScreen(title: 'menu.logout'.tr());
   }
 }

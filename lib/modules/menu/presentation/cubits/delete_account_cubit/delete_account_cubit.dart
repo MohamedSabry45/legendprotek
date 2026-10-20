@@ -15,6 +15,7 @@ class DeleteAccountCubit extends Cubit<DeleteAccountState> {
   final AccountRemoteDataSource _remote = AccountRemoteDataSource();
 
   Future<void> deleteAccount() async {
+    if (isClosed) return;
     emit(DeleteAccountLoading());
     try {
       await _remote.softDeleteAccount();
@@ -22,8 +23,10 @@ class DeleteAccountCubit extends Cubit<DeleteAccountState> {
       AppConstants.token = null;
       await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: '');
 
+      if (isClosed) return;
       emit(DeleteAccountSuccess());
     } catch (e) {
+      if (isClosed) return;
       emit(DeleteAccountError(e.toString()));
     }
   }

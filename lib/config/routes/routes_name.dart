@@ -21,6 +21,7 @@ class RoutesName {
   static const String jobOrdersScreen = '/job-orders';
   static const String jobOrderDetailsScreen = '/job-order-details';
   static const String notificationsScreen = '/notifications';
+  static const String maintenanceNotificationsScreen = '/maintenance-notifications';
   static const String informationBookingsScreen = '/information-bookings';
   static const String bookingDetailsScreen = '/booking-details';
   static const String jobEstimatorsScreen = '/job-estimators';

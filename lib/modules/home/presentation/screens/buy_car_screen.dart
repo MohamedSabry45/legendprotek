@@ -9,6 +9,8 @@ import 'package:reservation_workshop/core/widgets/login_required_view.dart';
 import '../cubit/vehicles_cubit.dart';
 import '../cubit/vehicles_state.dart';
 import '../widgets/vehicle_card.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
+
 import '../widgets/add_vehicle_dialog.dart';
 import '../widgets/vehicle_filters_dialog.dart';
 import 'vehicle_details_screen.dart';
@@ -105,7 +107,7 @@ class BuyCarScreen extends StatelessWidget {
 
             if (state is VehiclesError) {
               return _VehiclesErrorView(
-                message: state.message,
+                message: Toasters.displayMessage(state.message),
                 onRetry: () => context.read<VehiclesCubit>().loadFirst(),
               );
             }

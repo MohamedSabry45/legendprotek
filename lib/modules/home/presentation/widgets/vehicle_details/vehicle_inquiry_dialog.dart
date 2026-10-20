@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:reservation_workshop/config/style/app_colors.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/constants/app_constants.dart';
 import 'package:reservation_workshop/core/network/api_endpoints.dart';
 import 'package:reservation_workshop/core/network/local/cache_helper.dart';
@@ -12,10 +13,7 @@ import 'dart:convert';
 class VehicleInquiryDialog extends StatefulWidget {
   final int vehicleId;
 
-  const VehicleInquiryDialog({
-    super.key,
-    required this.vehicleId,
-  });
+  const VehicleInquiryDialog({super.key, required this.vehicleId});
 
   @override
   State<VehicleInquiryDialog> createState() => _VehicleInquiryDialogState();
@@ -35,13 +33,17 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
 
   Future<void> _submitInquiry() async {
     if (messageController.text.trim().isEmpty) return;
-    
+
     setState(() => isLoading = true);
     try {
       final baseUrl = AppConstants.kBaseUrl.trim();
-      final token = AppConstants.token ?? CacheHelper.getData<String>(key: PrefKeys.kAccessToken);
+      final token =
+          AppConstants.token ??
+          CacheHelper.getData<String>(key: PrefKeys.kAccessToken);
 
-      final uri = Uri.parse('$baseUrl${ApiEndpoints.vehicleInquiry(vehicleId: widget.vehicleId)}');
+      final uri = Uri.parse(
+        '$baseUrl${ApiEndpoints.vehicleInquiry(vehicleId: widget.vehicleId)}',
+      );
 
       final headers = <String, String>{
         'Accept': 'application/json',
@@ -66,21 +68,7 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (mounted) {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text('buy_car.inquiry_success'.tr())),
-                ],
-              ),
-              backgroundColor: const Color(0xFF4CAF50),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              margin: const EdgeInsets.all(16),
-            ),
-          );
+          Toasters.successKey('buy_car.inquiry_success');
         }
       } else {
         throw Exception('Failed to submit inquiry');
@@ -88,21 +76,7 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
     } catch (e) {
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(child: Text('buy_car.inquiry_failed'.tr())),
-              ],
-            ),
-            backgroundColor: const Color(0xFFD4AF37),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            margin: const EdgeInsets.all(16),
-          ),
-        );
+        Toasters.errorKey('buy_car.inquiry_failed');
       }
     }
   }
@@ -157,7 +131,7 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    context.locale.languageCode == 'ar' 
+                    context.locale.languageCode == 'ar'
                         ? 'اكتب رسالتك وعرضك المقترح'
                         : 'Write your message and proposed offer',
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -168,9 +142,9 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
                 ],
               ),
             ),
-            
+
             const Divider(height: 1, color: Color(0xFFF0F0F0)),
-            
+
             // Content
             Padding(
               padding: const EdgeInsets.all(24),
@@ -185,7 +159,7 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
                       color: Color(0xFF1A1A1A),
                     ),
                     decoration: InputDecoration(
-                      hintText: context.locale.languageCode == 'ar' 
+                      hintText: context.locale.languageCode == 'ar'
                           ? 'رسالتك...'
                           : 'Your message...',
                       hintStyle: const TextStyle(
@@ -204,13 +178,16 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.brandPrimary, width: 2),
+                        borderSide: BorderSide(
+                          color: AppColors.brandPrimary,
+                          width: 2,
+                        ),
                       ),
                       contentPadding: const EdgeInsets.all(16),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   TextField(
                     controller: priceController,
                     keyboardType: TextInputType.number,
@@ -220,14 +197,16 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
                       color: Color(0xFF1A1A1A),
                     ),
                     decoration: InputDecoration(
-                      hintText: context.locale.languageCode == 'ar' 
+                      hintText: context.locale.languageCode == 'ar'
                           ? 'السعر المعروض (اختياري)'
                           : 'Offered price (optional)',
                       hintStyle: const TextStyle(
                         color: Color(0xFF999999),
                         fontSize: 15,
                       ),
-                      prefixText: context.locale.languageCode == 'ar' ? 'ج.م ' : 'EGP ',
+                      prefixText: context.locale.languageCode == 'ar'
+                          ? 'ج.م '
+                          : 'EGP ',
                       prefixStyle: TextStyle(
                         color: AppColors.brandPrimary,
                         fontWeight: FontWeight.w600,
@@ -245,7 +224,10 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.brandPrimary, width: 2),
+                        borderSide: BorderSide(
+                          color: AppColors.brandPrimary,
+                          width: 2,
+                        ),
                       ),
                       contentPadding: const EdgeInsets.all(16),
                     ),
@@ -253,9 +235,9 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
                 ],
               ),
             ),
-            
+
             const Divider(height: 1, color: Color(0xFFF0F0F0)),
-            
+
             // Actions
             Padding(
               padding: const EdgeInsets.all(16),
@@ -263,7 +245,9 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
                 children: [
                   Expanded(
                     child: TextButton(
-                      onPressed: isLoading ? null : () => Navigator.of(context).pop(),
+                      onPressed: isLoading
+                          ? null
+                          : () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -298,11 +282,15 @@ class _VehicleInquiryDialogState extends State<VehicleInquiryDialog> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : Text(
-                              context.locale.languageCode == 'ar' ? 'إرسال' : 'Send',
+                              context.locale.languageCode == 'ar'
+                                  ? 'إرسال'
+                                  : 'Send',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,

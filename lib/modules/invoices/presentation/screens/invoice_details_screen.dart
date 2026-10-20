@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/config/style/app_spacing.dart';
 import 'package:reservation_workshop/core/widgets/app_card.dart';
 
 import '../../data/models/sell_invoice_model.dart';
+import '../widgets/invoice_card_widget.dart';
 import 'invoice_details_args.dart';
 
 class InvoiceDetailsScreen extends StatelessWidget {
@@ -20,22 +20,26 @@ class InvoiceDetailsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.black,
         elevation: 0,
-        title: const Text(
-          'Invoice details',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+        title: Text(
+          'invoices.details_title'.tr(),
+          style: const TextStyle(
+            color: Color(0xFFD4AF37),
+            fontWeight: FontWeight.w900,
+          ),
         ),
-        foregroundColor: Colors.white,
+        foregroundColor: const Color(0xFFD4AF37),
+        iconTheme: const IconThemeData(color: Color(0xFFD4AF37)),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: invoice == null
-              ? const Center(
+              ? Center(
                   child: Text(
-                    'No invoice selected',
-                    style: TextStyle(color: Colors.white70),
+                    'invoices.no_invoice_selected'.tr(),
+                    style: const TextStyle(color: Colors.white70),
                   ),
                 )
               : Center(
@@ -63,8 +67,10 @@ class _Body extends StatelessWidget {
     final transactionDate = invoice.transactionDate.trim().isEmpty ? '-' : invoice.transactionDate.trim();
     final paymentMethod = '-';
     final paymentRef = '-';
-    final paymentStatus = invoice.paymentStatus.trim().isEmpty ? '-' : invoice.paymentStatus.trim();
-    final status = invoice.status.trim().isEmpty ? '-' : invoice.status.trim();
+    final paymentStatus = InvoiceCardWidget.localizedStatus(
+      invoice.paymentStatus,
+    );
+    final status = InvoiceCardWidget.localizedStatus(invoice.status);
 
     final subtotal = invoice.totalBeforeTax;
     final discount = invoice.discountAmount;
@@ -88,9 +94,21 @@ class _Body extends StatelessWidget {
                 ),
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
-                  _headerRow(['No.', 'Transaction date', 'Payment method']),
-                  _valueRow([invoiceNo, transactionDate, paymentMethod], textTheme),
-                  _headerRow(['Payment status', 'Status', 'Payment ref']),
+                  _headerRow([
+                    'invoices.no'.tr(),
+                    'invoices.transaction_date'.tr(),
+                    'invoices.payment_method'.tr(),
+                  ]),
+                  _valueRow([
+                    invoiceNo,
+                    transactionDate,
+                    paymentMethod,
+                  ], textTheme),
+                  _headerRow([
+                    'invoices.payment_status'.tr(),
+                    'invoices.status'.tr(),
+                    'invoices.payment_ref'.tr(),
+                  ]),
                   _valueRow([paymentStatus, status, paymentRef], textTheme),
                 ],
               ),
@@ -109,9 +127,12 @@ class _Body extends StatelessWidget {
                       await launchUrl(uri, mode: LaunchMode.externalApplication);
                     },
               icon: const Icon(Icons.open_in_new),
-              label: const Text(
-                'Open invoice',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+              label: Text(
+                'invoices.open_invoice'.tr(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 14,
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFD4AF37),
@@ -123,7 +144,7 @@ class _Body extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
-            'Items',
+            'invoices.items'.tr(),
             style: textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w900,
               color: Colors.white,
@@ -143,7 +164,11 @@ class _Body extends StatelessWidget {
                 ),
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
-                  _headerRow(['Item', 'Qty', 'Total']),
+                  _headerRow([
+                    'invoices.item'.tr(),
+                    'invoices.qty'.tr(),
+                    'invoices.total'.tr(),
+                  ]),
                   for (final l in invoice.sellLines)
                     _valueRow(
                       [
@@ -161,7 +186,7 @@ class _Body extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
-            'Summary',
+            'invoices.summary'.tr(),
             style: textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w900,
               color: Colors.white,
@@ -181,7 +206,12 @@ class _Body extends StatelessWidget {
                 ),
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
-                  _headerRow(['Subtotal', 'Discount', 'Tax', 'Total']),
+                  _headerRow([
+                    'invoices.subtotal'.tr(),
+                    'invoices.discount'.tr(),
+                    'invoices.tax'.tr(),
+                    'invoices.total'.tr(),
+                  ]),
                   _valueRow([
                     _n(subtotal),
                     _n(discount),

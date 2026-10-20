@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/style/app_colors.dart';
 
@@ -52,9 +53,9 @@ class BookingHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              const Text(
-                'احجز موعدك بسهولة',
-                style: TextStyle(
+              Text(
+                'booking.subtitle'.tr(),
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: AppColors.grey7,
@@ -66,9 +67,15 @@ class BookingHeader extends StatelessWidget {
         const SizedBox(width: 8),
         _IconCircleButton(icon: Icons.work_outline, onPressed: onEdit),
         const SizedBox(width: 8),
-        _IconCircleButton(icon: Icons.request_quote_outlined, onPressed: onTheme),
+        _IconCircleButton(
+          icon: Icons.request_quote_outlined,
+          onPressed: onTheme,
+        ),
         const SizedBox(width: 8),
-        _IconCircleButton(icon: Icons.notifications_none, onPressed: onNotifications),
+        _IconCircleButton(
+          icon: Icons.notifications_none,
+          onPressed: onNotifications,
+        ),
       ],
     );
   }

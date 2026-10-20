@@ -5,7 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
 
-import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/config/style/app_spacing.dart';
 import 'package:reservation_workshop/core/components/toasters.dart';
 
@@ -33,26 +32,26 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
   Future<void> _callPhone(String phone) async {
     final p = phone.trim();
     if (p.isEmpty) {
-      Toasters.show('contact_us.phone_unavailable'.tr());
+      Toasters.errorKey('contact_us.phone_unavailable');
       return;
     }
 
     final uri = Uri.parse('tel:$p');
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok) {
-      Toasters.show('contact_us.open_phone_failed'.tr());
+      Toasters.errorKey('contact_us.open_phone_failed');
     }
   }
 
   Future<void> _copyPhone(String phone) async {
     final p = phone.trim();
     if (p.isEmpty) {
-      Toasters.show('contact_us.phone_unavailable'.tr());
+      Toasters.errorKey('contact_us.phone_unavailable');
       return;
     }
 
     await Clipboard.setData(ClipboardData(text: p));
-    Toasters.show('contact_us.phone_copied'.tr());
+    Toasters.successKey('contact_us.phone_copied');
   }
 
   Future<void> _openMap(BusinessLocation location) async {
@@ -60,15 +59,17 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
     final lng = location.longitude;
 
     if (lat == null || lng == null) {
-      Toasters.show('locations.no_map_for_branch'.tr());
+      Toasters.errorKey('locations.no_map_for_branch');
       return;
     }
 
-    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+    final uri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+    );
 
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok) {
-      Toasters.show('locations.open_map_failed'.tr());
+      Toasters.errorKey('locations.open_map_failed');
     }
   }
 
@@ -98,7 +99,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
           child: BlocConsumer<BusinessLocationsCubit, BusinessLocationsState>(
             listener: (context, state) {
               if (state is BusinessLocationsError) {
-                Toasters.show(state.message);
+                Toasters.errorFrom(state.message);
               }
             },
             builder: (context, state) {
@@ -115,7 +116,9 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                         ),
                         child: const CircularProgressIndicator(
                           strokeWidth: 3,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFD4AF37)),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFFD4AF37),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -174,7 +177,9 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                 );
               }
 
-              final items = state is BusinessLocationsSuccess ? state.locations : const <BusinessLocation>[];
+              final items = state is BusinessLocationsSuccess
+                  ? state.locations
+                  : const <BusinessLocation>[];
 
               return ListView(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -246,7 +251,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Section Header with count
                   Row(
                     children: [
@@ -270,7 +275,10 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                       if (items.isNotEmpty) ...[
                         const SizedBox(width: 12),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFD4AF37).withOpacity(0.15),
                             borderRadius: BorderRadius.circular(12),
@@ -303,7 +311,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  
+
                   if (items.isEmpty)
                     Center(
                       child: Padding(
@@ -391,7 +399,9 @@ class _ContactLocationCard extends StatelessWidget {
     if (country.isNotEmpty) parts.add(country);
     if (landmark.isNotEmpty) parts.add(landmark);
 
-    return parts.isEmpty ? 'contact_us.address_unavailable'.tr() : parts.join(' • ');
+    return parts.isEmpty
+        ? 'contact_us.address_unavailable'.tr()
+        : parts.join(' • ');
   }
 
   @override
@@ -406,10 +416,7 @@ class _ContactLocationCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF050505),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: const Color(0xFF0A0A0A),
-          width: 1.5,
-        ),
+        border: Border.all(color: const Color(0xFF0A0A0A), width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
@@ -429,10 +436,7 @@ class _ContactLocationCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF050505),
                 gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF050505),
-                    const Color(0xFF0A0A0A),
-                  ],
+                  colors: [const Color(0xFF050505), const Color(0xFF0A0A0A)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -482,17 +486,23 @@ class _ContactLocationCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
-                            gradient: hasMap 
+                            gradient: hasMap
                                 ? const LinearGradient(
-                                    colors: [Color(0xFFDCFCE7), Color(0xFFD1FAE5)],
+                                    colors: [
+                                      Color(0xFFDCFCE7),
+                                      Color(0xFFD1FAE5),
+                                    ],
                                   )
                                 : null,
                             color: hasMap ? null : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: hasMap 
+                              color: hasMap
                                   ? const Color(0xFF10B981).withOpacity(0.2)
                                   : const Color(0xFFCBD5E1),
                             ),
@@ -503,15 +513,21 @@ class _ContactLocationCard extends StatelessWidget {
                               Icon(
                                 hasMap ? Icons.check_circle : Icons.cancel,
                                 size: 14,
-                                color: hasMap ? const Color(0xFF10B981) : Colors.grey.shade600,
+                                color: hasMap
+                                    ? const Color(0xFF10B981)
+                                    : Colors.grey.shade600,
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                hasMap ? 'locations.map_available'.tr() : 'locations.no_location'.tr(),
+                                hasMap
+                                    ? 'locations.map_available'.tr()
+                                    : 'locations.no_location'.tr(),
                                 style: textTheme.bodySmall?.copyWith(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: hasMap ? const Color(0xFF10B981) : Colors.grey.shade600,
+                                  color: hasMap
+                                      ? const Color(0xFF10B981)
+                                      : Colors.grey.shade600,
                                 ),
                               ),
                             ],
@@ -523,7 +539,7 @@ class _ContactLocationCard extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Content Section
             Padding(
               padding: const EdgeInsets.all(20),
@@ -536,9 +552,7 @@ class _ContactLocationCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFF050505),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: const Color(0xFF0A0A0A),
-                      ),
+                      border: Border.all(color: const Color(0xFF0A0A0A)),
                     ),
                     child: Row(
                       children: [
@@ -572,16 +586,14 @@ class _ContactLocationCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // Phone Info
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: const Color(0xFF050505),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: const Color(0xFF0A0A0A),
-                      ),
+                      border: Border.all(color: const Color(0xFF0A0A0A)),
                     ),
                     child: Row(
                       children: [
@@ -594,17 +606,23 @@ class _ContactLocationCard extends StatelessWidget {
                           child: Icon(
                             Icons.phone_rounded,
                             size: 18,
-                            color: hasPhone ? const Color(0xFFD4AF37) : Colors.grey.shade500,
+                            color: hasPhone
+                                ? const Color(0xFFD4AF37)
+                                : Colors.grey.shade500,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            hasPhone ? phone : 'contact_us.phone_unavailable_label'.tr(),
+                            hasPhone
+                                ? phone
+                                : 'contact_us.phone_unavailable_label'.tr(),
                             style: textTheme.bodyMedium?.copyWith(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: hasPhone ? Colors.white : Colors.grey.shade500,
+                              color: hasPhone
+                                  ? Colors.white
+                                  : Colors.grey.shade500,
                               letterSpacing: 0.3,
                             ),
                           ),
@@ -613,7 +631,7 @@ class _ContactLocationCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  
+
                   // Action Buttons
                   Row(
                     children: [
@@ -683,15 +701,12 @@ class _ActionButton extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(14),
-        child:         Container(
+        child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
           decoration: BoxDecoration(
             gradient: isPrimary && isEnabled
                 ? const LinearGradient(
-                    colors: [
-                      const Color(0xFFD4AF37),
-                      Color(0xFFB91C1C),
-                    ],
+                    colors: [const Color(0xFFD4AF37), Color(0xFFB91C1C)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   )
@@ -699,15 +714,15 @@ class _ActionButton extends StatelessWidget {
             color: isPrimary && isEnabled
                 ? null
                 : isEnabled
-                    ? const Color(0xFF050505)
-                    : const Color(0xFF0A0A0A),
+                ? const Color(0xFF050505)
+                : const Color(0xFF0A0A0A),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isPrimary && isEnabled
                   ? Colors.transparent
                   : isEnabled
-                      ? const Color(0xFFD4AF37).withOpacity(0.3)
-                      : const Color(0xFF0A0A0A),
+                  ? const Color(0xFFD4AF37).withOpacity(0.3)
+                  : const Color(0xFF0A0A0A),
               width: 1.5,
             ),
             boxShadow: isPrimary && isEnabled
@@ -729,8 +744,8 @@ class _ActionButton extends StatelessWidget {
                 color: isPrimary && isEnabled
                     ? Colors.white
                     : isEnabled
-                        ? const Color(0xFFD4AF37)
-                        : Colors.grey.shade600,
+                    ? const Color(0xFFD4AF37)
+                    : Colors.grey.shade600,
               ),
               const SizedBox(height: 6),
               Text(
@@ -741,8 +756,8 @@ class _ActionButton extends StatelessWidget {
                   color: isPrimary && isEnabled
                       ? Colors.white
                       : isEnabled
-                          ? Colors.white
-                          : Colors.grey.shade500,
+                      ? Colors.white
+                      : Colors.grey.shade500,
                 ),
               ),
             ],

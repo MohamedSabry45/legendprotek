@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:reservation_workshop/config/routes/routes_name.dart';
 import 'package:reservation_workshop/core/components/dialogs/prograss_delay_dialog.dart';
 import 'package:reservation_workshop/core/components/toasters.dart';
@@ -85,12 +86,15 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                       EnterMobileActions.confirmRestoreDeletedAccount(
                         context: context,
                         userId: state.userId,
-                        message: state.message,
+                        message: Toasters.cleanError(state.message) ??
+                            'auth.restore_account_message'.tr(),
                         retryMobile: state.mobile,
-                        restoreDeletedAccount: (userId) =>
-                            SocialAuthCubit.get(context).restoreDeletedAccount(userId: userId),
-                        retryCheckPhone: (mobile) =>
-                            CheckPhoneCubit.get(context).checkPhone(mobile: mobile),
+                        restoreDeletedAccount: (userId) => SocialAuthCubit.get(
+                          context,
+                        ).restoreDeletedAccount(userId: userId),
+                        retryCheckPhone: (mobile) => CheckPhoneCubit.get(
+                          context,
+                        ).checkPhone(mobile: mobile),
                       );
                     });
                     return;
@@ -117,9 +121,7 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                     Navigator.pushNamed(
                       context,
                       RoutesName.registerScreen,
-                      arguments: <String, dynamic>{
-                        'mobile': state.mobile,
-                      },
+                      arguments: <String, dynamic>{'mobile': state.mobile},
                     );
                     return;
                   }
@@ -129,7 +131,10 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                       Navigator.of(context, rootNavigator: true).maybePop();
                       _dialogShown = false;
                     }
-                    Toasters.show(state.message);
+                    Toasters.errorFrom(
+                      state.message,
+                      fallbackKey: 'auth.check_phone_failed',
+                    );
                     return;
                   }
                 },
@@ -145,11 +150,13 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                       Navigator.of(context, rootNavigator: true).maybePop();
                       _dialogShown = false;
                     }
-                    debugPrint('[APPLE_LOGIN] [A6] navigating to chooseCarScreen');
+                    debugPrint(
+                      '[APPLE_LOGIN] [A6] navigating to homeScreen',
+                    );
                     Future.delayed(const Duration(milliseconds: 300), () {
                       Navigator.pushNamedAndRemoveUntil(
                         context,
-                        RoutesName.chooseCarScreen,
+                        RoutesName.homeScreen,
                         (route) => false,
                       );
                     });
@@ -185,11 +192,14 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                       EnterMobileActions.confirmRestoreDeletedAccount(
                         context: context,
                         userId: state.userId,
-                        message: state.message,
-                        restoreDeletedAccount: (userId) =>
-                            SocialAuthCubit.get(context).restoreDeletedAccount(userId: userId),
-                        retryCheckPhone: (mobile) =>
-                            CheckPhoneCubit.get(context).checkPhone(mobile: mobile),
+                        message: Toasters.cleanError(state.message) ??
+                            'auth.restore_account_message'.tr(),
+                        restoreDeletedAccount: (userId) => SocialAuthCubit.get(
+                          context,
+                        ).restoreDeletedAccount(userId: userId),
+                        retryCheckPhone: (mobile) => CheckPhoneCubit.get(
+                          context,
+                        ).checkPhone(mobile: mobile),
                       );
                     });
                     return;
@@ -200,7 +210,10 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                       Navigator.of(context, rootNavigator: true).maybePop();
                       _dialogShown = false;
                     }
-                    Toasters.show(state.message);
+                    Toasters.errorFrom(
+                      state.message,
+                      fallbackKey: 'auth.social_failed',
+                    );
                     return;
                   }
                 },
@@ -230,12 +243,20 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                 ),
                 child: SafeArea(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
                     child: Card(
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 18,
+                        ),
                         child: Form(
                           key: formKey,
                           child: Column(
@@ -252,14 +273,20 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                               Container(
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF0A0A0A),
-                                  border: Border.all(color: const Color(0xFF050505), width: 2),
+                                  border: Border.all(
+                                    color: const Color(0xFF050505),
+                                    width: 2,
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
                                   children: [
                                     // Fixed Egypt Country Code
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 16,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFF050505),
                                         borderRadius: const BorderRadius.only(
@@ -267,7 +294,9 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                                           bottomLeft: Radius.circular(12),
                                         ),
                                         border: Border(
-                                          right: BorderSide(color: const Color(0xFF30363D)),
+                                          right: BorderSide(
+                                            color: const Color(0xFF30363D),
+                                          ),
                                         ),
                                       ),
                                       child: const Row(
@@ -301,7 +330,7 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                                           color: Colors.white,
                                         ),
                                         decoration: InputDecoration(
-                                          hintText: 'Phone Number',
+                                          hintText: 'auth.phone_number'.tr(),
                                           hintStyle: const TextStyle(
                                             color: Colors.white54,
                                             fontSize: 16,
@@ -309,7 +338,10 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                                           filled: true,
                                           fillColor: const Color(0xFF1C2128),
                                           border: InputBorder.none,
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                              ),
                                         ),
                                       ),
                                     ),
@@ -331,13 +363,16 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                                         });
                                       },
                                       activeColor: Colors.green,
-                                      side: BorderSide(color: Colors.green.shade400, width: 2),
+                                      side: BorderSide(
+                                        color: Colors.green.shade400,
+                                        width: 2,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Text(
-                                    'Remember me',
-                                    style: TextStyle(
+                                  Text(
+                                    'auth.remember_me'.tr(),
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       color: Colors.white,
                                     ),
@@ -351,11 +386,14 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                                 height: 52,
                                 child: ElevatedButton(
                                   onPressed: () {
-                                    if (formKey.currentState?.validate() ?? true) {
-                                      final mobileText = _mobileController.text.startsWith('0') 
-                                          ? _mobileController.text.substring(1) 
+                                    if (formKey.currentState?.validate() ??
+                                        true) {
+                                      final mobileText =
+                                          _mobileController.text.startsWith('0')
+                                          ? _mobileController.text.substring(1)
                                           : _mobileController.text;
-                                      final fullNumber = '$_selectedCountryCode$mobileText';
+                                      final fullNumber =
+                                          '$_selectedCountryCode$mobileText';
                                       cubit.checkPhone(mobile: fullNumber);
                                     }
                                   },
@@ -367,9 +405,9 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  child: const Text(
-                                    'Get OTP',
-                                    style: TextStyle(
+                                  child: Text(
+                                    'auth.send_otp'.tr(),
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -380,18 +418,24 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                               // or divider - White text for visibility on dark
                               Row(
                                 children: [
-                                  Expanded(child: Divider(color: Colors.grey.shade600)),
+                                  Expanded(
+                                    child: Divider(color: Colors.grey.shade600),
+                                  ),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
                                     child: Text(
-                                      'or',
-                                      style: TextStyle(
+                                      'auth.or'.tr(),
+                                      style: const TextStyle(
                                         color: Colors.white70,
                                         fontSize: 14,
                                       ),
                                     ),
                                   ),
-                                  Expanded(child: Divider(color: Colors.grey.shade600)),
+                                  Expanded(
+                                    child: Divider(color: Colors.grey.shade600),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 32),
@@ -400,15 +444,23 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                                 width: double.infinity,
                                 height: 52,
                                 child: OutlinedButton(
-                                  onPressed: () => EnterMobileActions.signInWithGoogle(
-                                    context: context,
-                                    onStartLoading: _startBlockingDialog,
-                                    onStopLoading: _stopBlockingDialog,
-                                  ),
+                                  onPressed: () =>
+                                      EnterMobileActions.signInWithGoogle(
+                                        context: context,
+                                        onStartLoading: _startBlockingDialog,
+                                        onStopLoading: _stopBlockingDialog,
+                                      ),
                                   style: OutlinedButton.styleFrom(
                                     backgroundColor: Colors.white,
-                                    foregroundColor: const Color.fromARGB(255, 230, 228, 228),
-                                    side: BorderSide(color: Colors.grey.shade400),
+                                    foregroundColor: const Color.fromARGB(
+                                      255,
+                                      230,
+                                      228,
+                                      228,
+                                    ),
+                                    side: BorderSide(
+                                      color: Colors.grey.shade400,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -420,14 +472,19 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                                         'assets/images/google.png',
                                         height: 24,
                                         width: 24,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return const Icon(Icons.g_mobiledata, size: 24, color: const Color(0xFFD4AF37));
-                                        },
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                              return const Icon(
+                                                Icons.g_mobiledata,
+                                                size: 24,
+                                                color: const Color(0xFFD4AF37),
+                                              );
+                                            },
                                       ),
                                       const SizedBox(width: 12),
-                                      const Text(
-                                        'Continue with Google',
-                                        style: TextStyle(
+                                      Text(
+                                        'auth.continue_google'.tr(),
+                                        style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
                                           color: Colors.black,
@@ -444,34 +501,43 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                                   width: double.infinity,
                                   height: 52,
                                   child: OutlinedButton(
-                                    onPressed: () => EnterMobileActions.signInWithApple(
-                                      context: context,
-                                      onStartLoading: _startBlockingDialog,
-                                      onStopLoading: _stopBlockingDialog,
-                                    ),
+                                    onPressed: () =>
+                                        EnterMobileActions.signInWithApple(
+                                          context: context,
+                                          onStartLoading: _startBlockingDialog,
+                                          onStopLoading: _stopBlockingDialog,
+                                        ),
                                     style: OutlinedButton.styleFrom(
                                       backgroundColor: Colors.black,
                                       foregroundColor: Colors.white,
-                                      side: const BorderSide(color: Colors.black),
+                                      side: const BorderSide(
+                                        color: Colors.black,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Image.asset(
                                           'assets/images/apple_logo.png',
                                           height: 24,
                                           width: 24,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return const Icon(Icons.apple, size: 24, color: Colors.white);
-                                          },
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return const Icon(
+                                                  Icons.apple,
+                                                  size: 24,
+                                                  color: Colors.white,
+                                                );
+                                              },
                                         ),
                                         const SizedBox(width: 12),
-                                        const Text(
-                                          'Continue with Apple',
-                                          style: TextStyle(
+                                        Text(
+                                          'auth.continue_apple'.tr(),
+                                          style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -486,7 +552,10 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                               GestureDetector(
                                 onTap: () async {
                                   await CacheHelper.clearSession();
-                                  await CacheHelper.saveData(key: PrefKeys.kIsGuestMode, value: true);
+                                  await CacheHelper.saveData(
+                                    key: PrefKeys.kIsGuestMode,
+                                    value: true,
+                                  );
                                   if (mounted) {
                                     Navigator.pushNamedAndRemoveUntil(
                                       context,
@@ -495,28 +564,18 @@ class _EnterMobileScreenState extends State<EnterMobileScreen> {
                                     );
                                   }
                                 },
-                                child: RichText(
-                                  text: const TextSpan(
-                                    text: 'Continue as ',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                    ),
-                                    children: [
-                                      TextSpan(
-                                        text: 'Guest',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
+                                child: Text(
+                                  'auth.continue_as_guest'.tr(),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 28),
-                      ],
-                    ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

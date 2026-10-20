@@ -30,11 +30,14 @@ class GuestModeCubit extends Cubit<GuestModeState> {
   GuestModeCubit() : super(const GuestModeState());
 
   Future<void> loadGuestMode() async {
+    if (isClosed) return;
     emit(state.copyWith(isLoading: true));
     try {
       final isGuest = await CacheHelper.getDataAsync<bool>(key: PrefKeys.kIsGuestMode) ?? false;
+      if (isClosed) return;
       emit(state.copyWith(isGuest: isGuest, isLoading: false));
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }

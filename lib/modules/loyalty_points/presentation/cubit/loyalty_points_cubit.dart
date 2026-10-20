@@ -15,11 +15,14 @@ class LoyaltyPointsCubit extends Cubit<LoyaltyPointsState> {
 
   Future<void> load({required int contactId}) async {
     _contactId = contactId;
+    if (isClosed) return;
     emit(LoyaltyPointsLoading());
     try {
       final res = await _remote.getPoints(contactId: contactId);
+      if (isClosed) return;
       emit(LoyaltyPointsSuccess(res.data));
     } catch (e) {
+      if (isClosed) return;
       emit(LoyaltyPointsError(e.toString()));
     }
   }
@@ -36,13 +39,16 @@ class LoyaltyPointsCubit extends Cubit<LoyaltyPointsState> {
             : null;
 
     if (contactId == null) {
+      if (isClosed) return;
       emit(LoyaltyPointsError('Missing contact_id'));
       return;
     }
 
     if (current != null) {
+      if (isClosed) return;
       emit(LoyaltyPointsRedeemLoading(current));
     } else {
+      if (isClosed) return;
       emit(LoyaltyPointsLoading());
     }
 
@@ -52,8 +58,10 @@ class LoyaltyPointsCubit extends Cubit<LoyaltyPointsState> {
         pointsToRedeem: pointsToRedeem,
         orderTotal: orderTotal,
       );
+      if (isClosed) return;
       emit(LoyaltyPointsSuccess(res.data));
     } catch (e) {
+      if (isClosed) return;
       emit(LoyaltyPointsError(e.toString()));
     }
   }

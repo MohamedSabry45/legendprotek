@@ -28,6 +28,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
   bool get _hasMore => _page < _lastPage;
 
   Future<void> loadFirst() async {
+    if (isClosed) return;
     emit(VehiclesLoading());
     try {
       _page = 1;
@@ -48,6 +49,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
         ..clear()
         ..addAll(result.vehicles);
 
+      if (isClosed) return;
       emit(
         VehiclesSuccess(
           vehicles: List<Vehicle>.unmodifiable(_items),
@@ -58,6 +60,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
       );
     } catch (e) {
       print('Error loading vehicles: $e');
+      if (isClosed) return;
       emit(VehiclesError(e.toString()));
     }
   }
@@ -71,6 +74,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
   Future<void> refresh() async {
     final current = state;
     if (current is VehiclesSuccess) {
+      if (isClosed) return;
       emit(
         VehiclesSuccess(
           vehicles: current.vehicles,
@@ -98,6 +102,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
         ..clear()
         ..addAll(result.vehicles);
 
+      if (isClosed) return;
       emit(
         VehiclesSuccess(
           vehicles: List<Vehicle>.unmodifiable(_items),
@@ -107,6 +112,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
         ),
       );
     } catch (e) {
+      if (isClosed) return;
       emit(VehiclesError(e.toString()));
     }
   }
@@ -117,6 +123,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
     if (current.isLoadingMore) return;
     if (!_hasMore) return;
 
+    if (isClosed) return;
     emit(
       VehiclesSuccess(
         vehicles: current.vehicles,
@@ -137,6 +144,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
       _lastPage = result.lastPage;
       _items.addAll(result.vehicles);
 
+      if (isClosed) return;
       emit(
         VehiclesSuccess(
           vehicles: List<Vehicle>.unmodifiable(_items),
@@ -146,6 +154,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
         ),
       );
     } catch (e) {
+      if (isClosed) return;
       emit(
         VehiclesSuccess(
           vehicles: current.vehicles,

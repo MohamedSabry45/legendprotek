@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/style/app_colors.dart';
 
@@ -89,7 +90,7 @@ class ProformaCustomerSection extends StatelessWidget {
                   color: AppColors.brandDark,
                 ),
                 validator: (v) {
-                  if ((v ?? '').trim().isEmpty) return 'Required';
+                  if ((v ?? '').trim().isEmpty) return 'common.required'.tr();
                   return null;
                 },
               ),

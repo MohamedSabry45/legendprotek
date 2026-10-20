@@ -48,7 +48,8 @@ class JobOrderSparePartModel {
   double get lineTotal => priceValue * quantityValue;
 
   factory JobOrderSparePartModel.fromJson(Map<String, dynamic> json) {
-    int _asInt(dynamic v) => v is int ? v : int.tryParse(v?.toString() ?? '') ?? 0;
+    int _asInt(dynamic v) =>
+        v is int ? v : int.tryParse(v?.toString() ?? '') ?? 0;
 
     return JobOrderSparePartModel(
       id: _asInt(json['id']),
@@ -62,14 +63,20 @@ class JobOrderSparePartModel {
       purchasePrice: json['purchase_price']?.toString(),
       createdAt: json['created_at']?.toString() ?? '',
       quantity: json['quantity']?.toString() ?? '0',
-      supplierId: json['supplier_id'] == null ? null : _asInt(json['supplier_id']),
+      supplierId: json['supplier_id'] == null
+          ? null
+          : _asInt(json['supplier_id']),
       productStatus: json['product_status']?.toString() ?? '',
       notes: json['Notes']?.toString(),
       updatedAt: json['updated_at']?.toString() ?? '',
-      jobEstimatorId: json['job_estimator_id'] == null ? null : _asInt(json['job_estimator_id']),
+      jobEstimatorId: json['job_estimator_id'] == null
+          ? null
+          : _asInt(json['job_estimator_id']),
       productName: json['product_name']?.toString() ?? '',
       sku: json['sku']?.toString() ?? '',
-      productCategoryId: json['product_category_id'] == null ? null : _asInt(json['product_category_id']),
+      productCategoryId: json['product_category_id'] == null
+          ? null
+          : _asInt(json['product_category_id']),
       productCategoryName: json['product_category_name']?.toString(),
     );
   }

@@ -18,15 +18,19 @@ class BookingsCubit extends Cubit<BookingsState> {
   }
 
   Future<void> load() async {
+    if (isClosed) return;
     emit(BookingsLoading());
     try {
       if (await _isGuestMode()) {
+        if (isClosed) return;
         emit(BookingsSuccess(const []));
         return;
       }
       final bookings = await _remote.getCustomerBookings();
+      if (isClosed) return;
       emit(BookingsSuccess(bookings));
     } catch (e) {
+      if (isClosed) return;
       emit(BookingsError(e.toString()));
     }
   }

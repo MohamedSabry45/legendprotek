@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,6 +8,7 @@ import 'package:reservation_workshop/constants/app_constants.dart';
 import 'package:reservation_workshop/core/network/api_endpoints.dart';
 import 'package:reservation_workshop/core/network/local/cache_helper.dart';
 import 'package:reservation_workshop/core/utils/strings/prefkeys.dart';
+import 'package:reservation_workshop/modules/notifications/data/datasources/fcm_token_remote_datasource.dart';
 
 import 'auth_otp_state.dart';
 
@@ -19,22 +21,26 @@ class AuthOtpCubit extends Cubit<AuthOtpState> {
   String? get mobile => _mobile;
 
   Future<void> sendOtp({required String mobile}) async {
+    if (isClosed) return;
     emit(SendOtpLoading());
     _mobile = mobile.trim();
 
     if ((_mobile ?? '').isEmpty) {
+      if (isClosed) return;
       emit(AuthOtpError('Required'));
       return;
     }
 
     if (AppConstants.mockAuth) {
       await Future<void>.delayed(const Duration(milliseconds: 400));
+      if (isClosed) return;
       emit(SendOtpSuccess());
       return;
     }
 
     final baseUrl = AppConstants.kBaseUrl;
     if (baseUrl.trim().isEmpty) {
+      if (isClosed) return;
       emit(AuthOtpError('Base URL is not configured'));
       return;
     }
@@ -48,33 +54,40 @@ class AuthOtpCubit extends Cubit<AuthOtpState> {
       );
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
+        if (isClosed) return;
         emit(SendOtpSuccess());
         return;
       }
 
+      if (isClosed) return;
       emit(AuthOtpError(_extractErrorMessage(res.body) ?? 'Error'));
     } catch (e) {
+      if (isClosed) return;
       emit(AuthOtpError(e.toString()));
     }
   }
 
   Future<void> verifyOtp({required String otp}) async {
+    if (isClosed) return;
     emit(VerifyOtpLoading());
 
     final m = _mobile?.trim() ?? '';
     if (m.isEmpty) {
+      if (isClosed) return;
       emit(AuthOtpError('Mobile is missing'));
       return;
     }
 
     final baseUrl = AppConstants.kBaseUrl;
     if (baseUrl.trim().isEmpty) {
+      if (isClosed) return;
       emit(AuthOtpError('Base URL is not configured'));
       return;
     }
 
     final o = otp.trim();
     if (o.isEmpty) {
+      if (isClosed) return;
       emit(AuthOtpError('Required'));
       return;
     }
@@ -85,6 +98,7 @@ class AuthOtpCubit extends Cubit<AuthOtpState> {
       const token = 'mock_token';
       AppConstants.token = token;
       await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: token);
+      if (isClosed) return;
       emit(VerifyOtpSuccess(isFirstLogin: isFirst));
       return;
     }
@@ -105,23 +119,29 @@ class AuthOtpCubit extends Cubit<AuthOtpState> {
         if (token != null && token.trim().isNotEmpty) {
           AppConstants.token = token;
           await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: token);
+          unawaited(FcmTokenRemoteDataSource.registerCurrentToken());
         }
 
+        if (isClosed) return;
         emit(VerifyOtpSuccess(isFirstLogin: isFirst));
         return;
       }
 
+      if (isClosed) return;
       emit(AuthOtpError(_extractErrorMessage(res.body) ?? 'Error'));
     } catch (e) {
+      if (isClosed) return;
       emit(AuthOtpError(e.toString()));
     }
   }
 
   Future<void> completeProfile({required String name, required String password}) async {
+    if (isClosed) return;
     emit(CompleteProfileLoading());
 
     final baseUrl = AppConstants.kBaseUrl;
     if (baseUrl.trim().isEmpty) {
+      if (isClosed) return;
       emit(AuthOtpError('Base URL is not configured'));
       return;
     }
@@ -130,6 +150,7 @@ class AuthOtpCubit extends Cubit<AuthOtpState> {
     final p = password.trim();
 
     if (n.isEmpty || p.isEmpty) {
+      if (isClosed) return;
       emit(AuthOtpError('Required'));
       return;
     }
@@ -139,6 +160,7 @@ class AuthOtpCubit extends Cubit<AuthOtpState> {
       const token = 'mock_token';
       AppConstants.token = token;
       await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: token);
+      if (isClosed) return;
       emit(CompleteProfileSuccess());
       return;
     }
@@ -163,13 +185,17 @@ class AuthOtpCubit extends Cubit<AuthOtpState> {
         if (newToken != null && newToken.trim().isNotEmpty) {
           AppConstants.token = newToken;
           await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: newToken);
+          unawaited(FcmTokenRemoteDataSource.registerCurrentToken());
         }
+        if (isClosed) return;
         emit(CompleteProfileSuccess());
         return;
       }
 
+      if (isClosed) return;
       emit(AuthOtpError(_extractErrorMessage(res.body) ?? 'Error'));
     } catch (e) {
+      if (isClosed) return;
       emit(AuthOtpError(e.toString()));
     }
   }

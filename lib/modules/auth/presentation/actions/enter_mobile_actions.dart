@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/modules/auth/presentation/cubits/social_auth_cubit/social_auth_cubit.dart';
@@ -20,16 +21,20 @@ class EnterMobileActions {
       useRootNavigator: true,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Restore account'),
-          content: Text(message),
+          title: Text('auth.restore_account'.tr()),
+          content: Text(
+            message.trim().isEmpty
+                ? 'auth.restore_account_message'.tr()
+                : message,
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('No'),
+              child: Text('menu.no'.tr()),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('Yes'),
+              child: Text('menu.yes'.tr()),
             ),
           ],
         );
@@ -59,7 +64,8 @@ class EnterMobileActions {
         return;
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final accessToken = googleAuth.accessToken ?? '';
 
       final socialCubit = SocialAuthCubit.get(context);
@@ -72,7 +78,7 @@ class EnterMobileActions {
       );
     } catch (e) {
       onStopLoading();
-      Toasters.show(e.toString());
+      Toasters.errorFrom(e, fallbackKey: 'auth.social_failed');
     }
   }
 
@@ -101,7 +107,9 @@ class EnterMobileActions {
         try {
           final parts = identityToken.split('.');
           if (parts.length == 3) {
-            final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+            final payload = utf8.decode(
+              base64Url.decode(base64Url.normalize(parts[1])),
+            );
             final jwtData = jsonDecode(payload) as Map<String, dynamic>;
             email = jwtData['email']?.toString() ?? '';
             debugPrint('[APPLE_LOGIN] [A2] Extracted email from JWT: $email');
@@ -136,10 +144,10 @@ class EnterMobileActions {
         return;
       }
       onStopLoading();
-      Toasters.show(e.toString());
+      Toasters.errorFrom(e, fallbackKey: 'auth.social_failed');
     } catch (e) {
       onStopLoading();
-      Toasters.show(e.toString());
+      Toasters.errorFrom(e, fallbackKey: 'auth.social_failed');
     }
   }
 }

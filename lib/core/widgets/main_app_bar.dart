@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/core/widgets/logo_image_widget.dart';
+import 'package:reservation_workshop/modules/notifications/presentation/widgets/notification_unread_badge.dart';
 
 class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MainAppBar({
@@ -39,10 +40,12 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                     color: AppColors.brandSurface,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.notifications_none,
-                    color: Colors.black87,
-                    size: 24,
+                  child: const NotificationUnreadBadge(
+                    child: Icon(
+                      Icons.notifications_none,
+                      color: Colors.black87,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),

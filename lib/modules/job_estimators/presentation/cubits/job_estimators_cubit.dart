@@ -22,13 +22,16 @@ class JobEstimatorsCubit extends Cubit<JobEstimatorsState> {
     emit(JobEstimatorsLoading());
     try {
       if (await _isGuestMode()) {
+        if (isClosed) return;
         emit(JobEstimatorsSuccess([]));
         return;
       }
       final List<JobEstimatorModel> list = await _remote.getJobEstimators(customerId: customerId);
+      if (isClosed) return;
       emit(JobEstimatorsSuccess(list));
     } catch (e) {
-        emit(JobEstimatorsError(e.toString()));
+      if (isClosed) return;
+      emit(JobEstimatorsError(e.toString()));
     }
   }
 }

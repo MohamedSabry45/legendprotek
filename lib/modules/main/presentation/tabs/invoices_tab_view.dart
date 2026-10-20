@@ -9,6 +9,7 @@ import 'package:reservation_workshop/core/widgets/login_required_view.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_cubit.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_state.dart';
 import 'package:reservation_workshop/modules/invoices/presentation/cubits/invoices_cubit/invoices_cubit.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/modules/invoices/presentation/cubits/invoices_cubit/invoices_state.dart';
 import 'package:reservation_workshop/modules/invoices/presentation/screens/invoice_details_args.dart';
 import 'package:reservation_workshop/modules/invoices/presentation/widgets/invoice_card_widget.dart';
@@ -52,24 +53,22 @@ class _InvoicesTabBodyState extends State<_InvoicesTabBody> {
   Widget build(BuildContext context) {
     return BlocBuilder<CustomerInfoCubit, CustomerInfoState>(
       builder: (context, customerState) {
-        final contactId = customerState is CustomerInfoSuccess ? customerState.info.id : 0;
+        final contactId = customerState is CustomerInfoSuccess
+            ? customerState.info.id
+            : 0;
 
         if (contactId == 0) {
           return const LoginRequiredView();
         }
 
         if (customerState is CustomerInfoLoading || contactId == 0) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
         return BlocBuilder<InvoicesCubit, InvoicesState>(
           builder: (context, state) {
             if (state is InvoicesLoading) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+              return const Center(child: CircularProgressIndicator());
             }
 
             if (state is InvoicesError) {
@@ -79,7 +78,7 @@ class _InvoicesTabBodyState extends State<_InvoicesTabBody> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      state.message,
+                      Toasters.displayMessage(state.message),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
@@ -91,9 +90,11 @@ class _InvoicesTabBodyState extends State<_InvoicesTabBody> {
                       width: 180,
                       child: ElevatedButton(
                         onPressed: () {
-                          context.read<InvoicesCubit>().load(contactId: contactId);
+                          context.read<InvoicesCubit>().load(
+                            contactId: contactId,
+                          );
                         },
-                        child: Text('Retry'.tr()),
+                        child: Text('common.retry'.tr()),
                       ),
                     ),
                   ],
@@ -107,7 +108,7 @@ class _InvoicesTabBodyState extends State<_InvoicesTabBody> {
                   backgroundColor: const Color(0xFF050505),
                   borderColor: const Color(0xFFD4AF37).withOpacity(0.25),
                   child: Text(
-                    'No invoices'.tr(),
+                    'invoices.empty'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
@@ -118,7 +119,8 @@ class _InvoicesTabBodyState extends State<_InvoicesTabBody> {
               }
 
               return RefreshIndicator(
-                onRefresh: () => context.read<InvoicesCubit>().load(contactId: contactId),
+                onRefresh: () =>
+                    context.read<InvoicesCubit>().load(contactId: contactId),
                 child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(0, 10, 0, 100),
                   itemBuilder: (context, index) {
@@ -134,7 +136,8 @@ class _InvoicesTabBodyState extends State<_InvoicesTabBody> {
                       },
                     );
                   },
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
                   itemCount: state.invoices.length,
                 ),
               );

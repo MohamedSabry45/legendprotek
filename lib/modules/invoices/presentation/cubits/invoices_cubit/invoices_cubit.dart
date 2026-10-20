@@ -14,8 +14,10 @@ class InvoicesCubit extends Cubit<InvoicesState> {
     emit(InvoicesLoading());
     try {
       final invoices = await _remote.getSellInvoices(contactId: contactId);
+      if (isClosed) return;
       emit(InvoicesSuccess(invoices));
     } catch (e) {
+      if (isClosed) return;
       emit(InvoicesError(e.toString()));
     }
   }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/routes/routes_name.dart';
 import 'package:reservation_workshop/core/components/dialogs/prograss_delay_dialog.dart';
 import 'package:reservation_workshop/core/components/toasters.dart';
+import 'package:reservation_workshop/core/widgets/otp_code_input.dart';
 import 'package:reservation_workshop/modules/auth/presentation/cubits/social_auth_cubit/social_auth_cubit.dart';
 import 'package:reservation_workshop/modules/auth/presentation/cubits/social_auth_cubit/social_auth_state.dart';
 
@@ -13,16 +13,16 @@ class SocialOtpVerificationScreen extends StatefulWidget {
   const SocialOtpVerificationScreen({super.key});
 
   @override
-  State<SocialOtpVerificationScreen> createState() => _SocialOtpVerificationScreenState();
+  State<SocialOtpVerificationScreen> createState() =>
+      _SocialOtpVerificationScreenState();
 }
 
-class _SocialOtpVerificationScreenState extends State<SocialOtpVerificationScreen> {
+class _SocialOtpVerificationScreenState
+    extends State<SocialOtpVerificationScreen> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   final TextEditingController _mobileController = TextEditingController();
-
-  final List<TextEditingController> _codeControllers = List.generate(5, (_) => TextEditingController());
-  final List<FocusNode> _codeFocusNodes = List.generate(5, (_) => FocusNode());
+  final TextEditingController _otpController = TextEditingController();
 
   bool _didPrefill = false;
   bool _dialogShown = false;
@@ -58,69 +58,23 @@ class _SocialOtpVerificationScreenState extends State<SocialOtpVerificationScree
   @override
   void dispose() {
     _mobileController.dispose();
-    for (final c in _codeControllers) {
-      c.dispose();
-    }
-    for (final f in _codeFocusNodes) {
-      f.dispose();
-    }
+    _otpController.dispose();
     super.dispose();
   }
 
   Widget buildCodeInputs() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(5, (index) {
-        return SizedBox(
-          width: 56,
-          height: 56,
-          child: TextFormField(
-            controller: _codeControllers[index],
-            focusNode: _codeFocusNodes[index],
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            maxLength: 1,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-            ],
-            decoration: InputDecoration(
-              counterText: '',
-              filled: true,
-              fillColor: const Color(0xFF050505),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: const Color(0xFF0A0A0A), width: 2),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: const Color(0xFF0A0A0A), width: 2),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: const Color(0xFFD4AF37), width: 2),
-              ),
-            ),
-            onChanged: (value) {
-              if (value.isNotEmpty && index < 4) {
-                _codeFocusNodes[index + 1].requestFocus();
-              } else if (value.isEmpty && index > 0) {
-                _codeFocusNodes[index - 1].requestFocus();
-              }
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return '';
-              }
-              return null;
-            },
-          ),
-        );
-      }),
+    return OtpCodeInput(
+      controller: _otpController,
+      validator: (value) {
+        if (value == null || value.length != 5) {
+          return 'auth.otp_required'.tr();
+        }
+        return null;
+      },
     );
   }
 
-  String getCodeValue() => _codeControllers.map((c) => c.text).join();
+  String getCodeValue() => _otpController.text;
 
   @override
   Widget build(BuildContext context) {
@@ -141,7 +95,7 @@ class _SocialOtpVerificationScreenState extends State<SocialOtpVerificationScree
           }
           Navigator.pushNamedAndRemoveUntil(
             context,
-            RoutesName.chooseCarScreen,
+            RoutesName.homeScreen,
             (route) => false,
           );
           return;
@@ -152,7 +106,10 @@ class _SocialOtpVerificationScreenState extends State<SocialOtpVerificationScree
             Navigator.of(context, rootNavigator: true).maybePop();
             _dialogShown = false;
           }
-          Toasters.show(state.message);
+          Toasters.show(
+            Toasters.cleanError(state.message) ??
+                'auth.restore_account_message'.tr(),
+          );
           return;
         }
 
@@ -161,7 +118,7 @@ class _SocialOtpVerificationScreenState extends State<SocialOtpVerificationScree
             Navigator.of(context, rootNavigator: true).maybePop();
             _dialogShown = false;
           }
-          Toasters.show(state.message);
+          Toasters.errorFrom(state.message, fallbackKey: 'auth.verify_failed');
           return;
         }
       },
@@ -180,11 +137,7 @@ class _SocialOtpVerificationScreenState extends State<SocialOtpVerificationScree
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.black,
-                Color(0xFF050505),
-                Color(0xFF0A0A0A),
-              ],
+              colors: [Colors.black, Color(0xFF050505), Color(0xFF0A0A0A)],
             ),
           ),
           child: SafeArea(
@@ -192,9 +145,14 @@ class _SocialOtpVerificationScreenState extends State<SocialOtpVerificationScree
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Card(
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
+                  ),
                   child: Form(
                     key: formKey,
                     child: Column(
@@ -222,12 +180,20 @@ class _SocialOtpVerificationScreenState extends State<SocialOtpVerificationScree
                         Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFF050505),
-                            border: Border.all(color: const Color(0xFF0A0A0A), width: 2),
+                            border: Border.all(
+                              color: const Color(0xFF0A0A0A),
+                              width: 2,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
                           child: Text(
-                            _mobileController.text.isEmpty ? 'auth.register_mobile_hint'.tr() : _mobileController.text,
+                            _mobileController.text.isEmpty
+                                ? 'auth.register_mobile_hint'.tr()
+                                : _mobileController.text,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,

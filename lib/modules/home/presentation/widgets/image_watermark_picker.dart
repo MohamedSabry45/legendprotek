@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reservation_workshop/config/style/app_colors.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 
 class ImageWatermarkPicker extends StatefulWidget {
   final List<String> initialImages;
@@ -48,7 +49,9 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
       setState(() {
         _watermarkLogo = frameInfo.image;
       });
-      print('Watermark logo loaded successfully: ${_watermarkLogo?.width}x${_watermarkLogo?.height}');
+      print(
+        'Watermark logo loaded successfully: ${_watermarkLogo?.width}x${_watermarkLogo?.height}',
+      );
     } catch (e) {
       print('Failed to load watermark logo: $e');
     }
@@ -58,20 +61,15 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
     try {
       if (_watermarkLogo == null) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.locale.languageCode == 'ar'
-                  ? 'انتظر تحميل اللوجو ثم حاول مرة أخرى'
-                  : 'Please wait for logo to load then try again',
-            ),
-          ),
-        );
+        Toasters.errorKey('image_picker.wait_logo');
         return;
       }
 
       setState(() => _isProcessing = true);
-      final XFile? image = await _imagePicker.pickImage(source: source, imageQuality: 85);
+      final XFile? image = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 85,
+      );
       if (image != null) {
         final Uint8List originalBytes = await image.readAsBytes();
         final Uint8List compressedBytes = await _compressImage(originalBytes);
@@ -87,9 +85,7 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.locale.languageCode == 'ar' ? 'فشل اختيار الصورة' : 'Failed to pick image')),
-      );
+      Toasters.errorKey('image_picker.pick_failed');
     }
   }
 
@@ -126,13 +122,19 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
         targetWidth,
         targetHeight,
       );
-      final Rect src = Rect.fromLTWH(0, 0, logo.width.toDouble(), logo.height.toDouble());
+      final Rect src = Rect.fromLTWH(
+        0,
+        0,
+        logo.width.toDouble(),
+        logo.height.toDouble(),
+      );
 
       // Draw logo with high transparency
-      final paint = Paint()
-        ..color = Colors.white.withOpacity(0.3);
+      final paint = Paint()..color = Colors.white.withOpacity(0.3);
       canvas.drawImageRect(logo, src, dst, paint);
-      print('Watermark applied: logo(${logo.width}x${logo.height}) at pos(${dst.left},${dst.top}) size(${dst.width}x${dst.height})');
+      print(
+        'Watermark applied: logo(${logo.width}x${logo.height}) at pos(${dst.left},${dst.top}) size(${dst.width}x${dst.height})',
+      );
     } else {
       // Fallback: draw text watermark if logo fails to load
       final textPainter = TextPainter(
@@ -187,8 +189,14 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    context.locale.languageCode == 'ar' ? 'معاينة الصور' : 'Images Preview',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+                    context.locale.languageCode == 'ar'
+                        ? 'معاينة الصور'
+                        : 'Images Preview',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -296,7 +304,9 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
           ),
           const SizedBox(height: 12),
           Text(
-            context.locale.languageCode == 'ar' ? 'ارفع صورة للسيارة' : 'Upload Vehicle Image',
+            context.locale.languageCode == 'ar'
+                ? 'ارفع صورة للسيارة'
+                : 'Upload Vehicle Image',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -305,13 +315,10 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
           ),
           const SizedBox(height: 8),
           Text(
-            context.locale.languageCode == 'ar' 
-              ? 'اختر صورة من الكاميرا أو المعرض' 
-              : 'Choose image from camera or gallery',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey.shade600,
-            ),
+            context.locale.languageCode == 'ar'
+                ? 'اختر صورة من الكاميرا أو المعرض'
+                : 'Choose image from camera or gallery',
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 16),
           Row(
@@ -330,14 +337,26 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
                     ],
                   ),
                   child: OutlinedButton.icon(
-                    onPressed: _isProcessing ? null : () => _pickImage(ImageSource.camera),
-                    icon: Icon(Icons.camera_alt_rounded, color: AppColors.brandPrimary, size: 20),
+                    onPressed: _isProcessing
+                        ? null
+                        : () => _pickImage(ImageSource.camera),
+                    icon: Icon(
+                      Icons.camera_alt_rounded,
+                      color: AppColors.brandPrimary,
+                      size: 20,
+                    ),
                     label: Text(
                       context.locale.languageCode == 'ar' ? 'كاميرا' : 'Camera',
-                      style: TextStyle(color: AppColors.brandPrimary, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: AppColors.brandPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.brandPrimary.withOpacity(0.4), width: 1.5),
+                      side: BorderSide(
+                        color: AppColors.brandPrimary.withOpacity(0.4),
+                        width: 1.5,
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -361,14 +380,26 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
                     ],
                   ),
                   child: OutlinedButton.icon(
-                    onPressed: _isProcessing ? null : () => _pickImage(ImageSource.gallery),
-                    icon: Icon(Icons.photo_library_rounded, color: AppColors.brandPrimary, size: 20),
+                    onPressed: _isProcessing
+                        ? null
+                        : () => _pickImage(ImageSource.gallery),
+                    icon: Icon(
+                      Icons.photo_library_rounded,
+                      color: AppColors.brandPrimary,
+                      size: 20,
+                    ),
                     label: Text(
                       context.locale.languageCode == 'ar' ? 'معرض' : 'Gallery',
-                      style: TextStyle(color: AppColors.brandPrimary, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: AppColors.brandPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: AppColors.brandPrimary.withOpacity(0.4), width: 1.5),
+                      side: BorderSide(
+                        color: AppColors.brandPrimary.withOpacity(0.4),
+                        width: 1.5,
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -391,8 +422,13 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  context.locale.languageCode == 'ar' ? 'جاري تجهيز الصورة...' : 'Processing image...',
-                  style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600),
+                  context.locale.languageCode == 'ar'
+                      ? 'جاري تجهيز الصورة...'
+                      : 'Processing image...',
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -410,7 +446,11 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.check_circle_rounded, color: Colors.green.shade600, size: 20),
+                      Icon(
+                        Icons.check_circle_rounded,
+                        color: Colors.green.shade600,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -432,13 +472,24 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: _showImagesPreview,
-                          icon: const Icon(Icons.preview, color: AppColors.brandPrimary, size: 16),
+                          icon: const Icon(
+                            Icons.preview,
+                            color: AppColors.brandPrimary,
+                            size: 16,
+                          ),
                           label: Text(
-                            context.locale.languageCode == 'ar' ? 'معاينة' : 'Preview',
-                            style: const TextStyle(color: AppColors.brandPrimary, fontSize: 12),
+                            context.locale.languageCode == 'ar'
+                                ? 'معاينة'
+                                : 'Preview',
+                            style: const TextStyle(
+                              color: AppColors.brandPrimary,
+                              fontSize: 12,
+                            ),
                           ),
                           style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: AppColors.brandPrimary.withOpacity(0.5)),
+                            side: BorderSide(
+                              color: AppColors.brandPrimary.withOpacity(0.5),
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 8),
                           ),
                         ),
@@ -452,13 +503,24 @@ class _ImageWatermarkPickerState extends State<ImageWatermarkPicker> {
                             });
                             widget.onImagesChanged(const <String>[]);
                           },
-                          icon: const Icon(Icons.delete_outline, color: const Color(0xFFD4AF37), size: 16),
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: const Color(0xFFD4AF37),
+                            size: 16,
+                          ),
                           label: Text(
-                            context.locale.languageCode == 'ar' ? 'حذف' : 'Remove',
-                            style: const TextStyle(color: const Color(0xFFD4AF37), fontSize: 12),
+                            context.locale.languageCode == 'ar'
+                                ? 'حذف'
+                                : 'Remove',
+                            style: const TextStyle(
+                              color: const Color(0xFFD4AF37),
+                              fontSize: 12,
+                            ),
                           ),
                           style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: const Color(0xFFD4AF37).withOpacity(0.5)),
+                            side: BorderSide(
+                              color: const Color(0xFFD4AF37).withOpacity(0.5),
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 8),
                           ),
                         ),

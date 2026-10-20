@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
 
-import 'package:reservation_workshop/config/style/app_colors.dart';
-import 'package:reservation_workshop/core/widgets/app_header.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_cubit.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_state.dart';
 
 import 'package:reservation_workshop/config/routes/routes_name.dart';
 import '../cubits/job_estimators_cubit.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
+
 import '../cubits/job_estimators_state.dart';
 import '../widgets/job_estimator_card.dart';
 import '../screens/job_estimator_details_args.dart';
@@ -44,9 +44,12 @@ class _JobEstimatorsScreenState extends State<JobEstimatorsScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF050505),
         elevation: 0,
-        title: const Text(
-          'طلب مقايسه',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+        title: Text(
+          'job_estimators.title'.tr(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+          ),
         ),
         foregroundColor: Colors.white,
       ),
@@ -54,7 +57,9 @@ class _JobEstimatorsScreenState extends State<JobEstimatorsScreen> {
         child: BlocConsumer<CustomerInfoCubit, CustomerInfoState>(
           listener: (context, state) {
             if (state is CustomerInfoSuccess) {
-              context.read<JobEstimatorsCubit>().load(customerId: state.info.id);
+              context.read<JobEstimatorsCubit>().load(
+                customerId: state.info.id,
+              );
             }
           },
           builder: (context, customerState) {
@@ -68,7 +73,7 @@ class _JobEstimatorsScreenState extends State<JobEstimatorsScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Text(
-                        state.message,
+                        Toasters.displayMessage(state.message),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 12,
@@ -79,12 +84,14 @@ class _JobEstimatorsScreenState extends State<JobEstimatorsScreen> {
                     ),
                   );
                 }
-                final items = state is JobEstimatorsSuccess ? state.estimators : const [];
+                final items = state is JobEstimatorsSuccess
+                    ? state.estimators
+                    : const [];
                 if (items.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
-                      'لا توجد تقديرات',
-                      style: TextStyle(
+                      'job_estimators.empty'.tr(),
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Colors.black54,

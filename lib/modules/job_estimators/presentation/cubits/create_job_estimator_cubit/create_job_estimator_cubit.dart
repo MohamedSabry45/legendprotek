@@ -29,6 +29,7 @@ class CreateJobEstimatorCubit extends Cubit<CreateJobEstimatorState> {
         sendNotificationValue: sendNotificationValue,
       );
 
+      if (isClosed) return;
       emit(
         CreateJobEstimatorSuccess(
           id: res.id,
@@ -36,6 +37,7 @@ class CreateJobEstimatorCubit extends Cubit<CreateJobEstimatorState> {
         ),
       );
     } catch (e) {
+      if (isClosed) return;
       emit(CreateJobEstimatorError(e.toString()));
     }
   }

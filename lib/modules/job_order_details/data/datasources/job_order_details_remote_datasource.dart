@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:reservation_workshop/constants/app_constants.dart';
@@ -11,7 +12,8 @@ import '../models/job_order_status_model.dart';
 class JobOrderDetailsRemoteDataSource {
   final http.Client _client;
 
-  JobOrderDetailsRemoteDataSource({http.Client? client}) : _client = client ?? http.Client();
+  JobOrderDetailsRemoteDataSource({http.Client? client})
+    : _client = client ?? http.Client();
 
   Future<JobOrderDetailsResponseModel> getJobOrderDetails({
     required int jobOrderId,
@@ -42,23 +44,46 @@ class JobOrderDetailsRemoteDataSource {
   Future<String> saveProduct({
     required int jobOrderId,
     required List<int> productIds,
+    String? token,
   }) async {
     final baseUrl = AppConstants.kBaseUrl.trim();
     final encodedPairs = <String>[
       'job_order_id=${Uri.encodeQueryComponent(jobOrderId.toString())}',
-      ...productIds.map((e) => 'product_ids[]=${Uri.encodeQueryComponent(e.toString())}'),
+      ...productIds.map(
+        (e) => 'product_ids[]=${Uri.encodeQueryComponent(e.toString())}',
+      ),
+      if (token != null && token.trim().isNotEmpty)
+        'token=${Uri.encodeQueryComponent(token.trim())}',
     ];
-    final uri = Uri.parse('$baseUrl${ApiEndpoints.saveProduct}?${encodedPairs.join('&')}');
+    final uri = Uri.parse(
+      '$baseUrl${ApiEndpoints.saveProduct}?${encodedPairs.join('&')}',
+    );
 
+    debugPrint('saveProduct REQUEST -> $uri');
     final res = await _client.get(uri);
     final decoded = _decodeJson(res.body);
+    debugPrint('saveProduct RESPONSE -> status: ${res.statusCode}');
+    debugPrint('saveProduct RESPONSE -> body: ${res.body}');
 
     if (res.statusCode < 200 || res.statusCode >= 300) {
       throw Exception(_extractMessage(decoded) ?? 'Request failed');
     }
 
-    final msg = decoded['warning']?.toString() ?? decoded['success']?.toString() ?? decoded['message']?.toString();
-    return (msg == null || msg.trim().isEmpty) ? 'Done' : msg;
+    final error = decoded['error']?.toString();
+    if (error != null && error.trim().isNotEmpty) {
+      throw Exception(error);
+    }
+    final warning = decoded['warning']?.toString();
+    if (warning != null && warning.trim().isNotEmpty) {
+      throw Exception(warning);
+    }
+
+    final msg =
+        decoded['message']?.toString() ?? decoded['success']?.toString();
+    if (msg == null || msg.trim().isEmpty) {
+      throw Exception('Request failed');
+    }
+    return msg;
   }
 
   Future<List<JobOrderStatusModel>> getStatuses() async {

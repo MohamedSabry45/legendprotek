@@ -18,15 +18,19 @@ class BusinessLocationsCubit extends Cubit<BusinessLocationsState> {
   }
 
   Future<void> load() async {
+    if (isClosed) return;
     emit(BusinessLocationsLoading());
     try {
       if (await _isGuestMode()) {
+        if (isClosed) return;
         emit(BusinessLocationsSuccess([]));
         return;
       }
       final items = await _remote.getBusinessLocations();
+      if (isClosed) return;
       emit(BusinessLocationsSuccess(items));
     } catch (e) {
+      if (isClosed) return;
       emit(BusinessLocationsError(e.toString()));
     }
   }

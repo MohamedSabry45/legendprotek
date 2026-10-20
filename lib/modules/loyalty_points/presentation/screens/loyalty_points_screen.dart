@@ -42,7 +42,7 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
 
     final contactId = _contactIdFromMobile(customerState.info.mobile);
     if (contactId == null) {
-      Toasters.show('points.contact_id_extract_failed'.tr());
+      Toasters.errorKey('points.contact_id_extract_failed');
       return;
     }
 
@@ -73,80 +73,6 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
     context.read<LoyaltyPointsCubit>().load(contactId: contactId);
   }
 
-  Future<void> _showRedeemResultDialog({required bool success, required String message}) {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) {
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          backgroundColor: Colors.transparent,
-          child: Directionality(
-            textDirection: context.locale.languageCode == 'ar' ? ui.TextDirection.rtl : ui.TextDirection.ltr,
-            child: Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: const Color(0xFF050505),
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 24,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: success ? const Color(0x1F10B981) : AppColors.brandPrimarySoft,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      success ? Icons.check_circle_outline : Icons.error_outline,
-                      color: success ? const Color(0xFF10B981) : AppColors.brandPrimary,
-                      size: 34,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    success ? 'points.redeem_success'.tr() : 'points.redeem_failed'.tr(),
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white70, height: 1.5, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        backgroundColor: AppColors.brandPrimary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                      ),
-                      child: Text('points.ok'.tr(), style: const TextStyle(fontWeight: FontWeight.w900)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _showRedeemDialog(LoyaltyPointsData data) async {
     final pointsController = TextEditingController();
     final minOrder = double.tryParse(data.minOrderTotalForRedeem) ?? 0;
@@ -169,7 +95,9 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
           TextPosition(offset: pointsController.text.length),
         );
         adjustingPoints = false;
-        pointsError.value = 'points.max_points_allowed'.tr(args: [data.redeemablePoints.toString()]);
+        pointsError.value = 'points.max_points_allowed'.tr(
+          args: [data.redeemablePoints.toString()],
+        );
         return;
       }
 
@@ -201,10 +129,15 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
         final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
 
         return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
           backgroundColor: Colors.transparent,
           child: Directionality(
-            textDirection: context.locale.languageCode == 'ar' ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+            textDirection: context.locale.languageCode == 'ar'
+                ? ui.TextDirection.rtl
+                : ui.TextDirection.ltr,
             child: SafeArea(
               child: Padding(
                 padding: EdgeInsets.only(bottom: bottomInset),
@@ -230,11 +163,18 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Container(
-                              padding: const EdgeInsets.fromLTRB(18, 18, 12, 14),
+                              padding: const EdgeInsets.fromLTRB(
+                                18,
+                                18,
+                                12,
+                                14,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF0A0A0A),
                                 border: Border(
-                                  bottom: BorderSide(color: const Color(0xFF050505)),
+                                  bottom: BorderSide(
+                                    color: const Color(0xFF050505),
+                                  ),
                                 ),
                               ),
                               child: Row(
@@ -256,31 +196,48 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
                                   Expanded(
                                     child: Text(
                                       'points.redeem_title'.tr(),
-                                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
                                   IconButton(
                                     onPressed: () => Navigator.of(ctx).pop(),
-                                    icon: const Icon(Icons.close_rounded, size: 22, color: Colors.white70),
+                                    icon: const Icon(
+                                      Icons.close_rounded,
+                                      size: 22,
+                                      color: Colors.white70,
+                                    ),
                                     splashRadius: 20,
                                   ),
                                 ],
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+                              padding: const EdgeInsets.fromLTRB(
+                                18,
+                                16,
+                                18,
+                                18,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   TextField(
                                     controller: pointsController,
                                     keyboardType: TextInputType.number,
-                                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
                                     decoration: InputDecoration(
                                       hintText: 'points.points_hint'.tr(),
                                       filled: true,
                                       fillColor: const Color(0xFF1C2128),
-                                      hintStyle: const TextStyle(color: Colors.white70),
+                                      hintStyle: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(14),
                                         borderSide: BorderSide.none,
@@ -315,12 +272,20 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
                                     decoration: InputDecoration(
                                       hintText: 'points.order_total_hint'.tr(),
                                       helperText: (minOrder > 0)
-                                          ? 'points.min_order'.tr(args: [minOrder.toStringAsFixed(2)])
+                                          ? 'points.min_order'.tr(
+                                              args: [
+                                                minOrder.toStringAsFixed(2),
+                                              ],
+                                            )
                                           : null,
-                                      helperStyle: const TextStyle(color: Colors.white70),
+                                      helperStyle: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
                                       filled: true,
                                       fillColor: const Color(0xFF1C2128),
-                                      hintStyle: const TextStyle(color: Colors.white70),
+                                      hintStyle: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(14),
                                         borderSide: BorderSide.none,
@@ -332,12 +297,20 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
                                     children: [
                                       Expanded(
                                         child: OutlinedButton(
-                                          onPressed: () => Navigator.of(ctx).pop(),
+                                          onPressed: () =>
+                                              Navigator.of(ctx).pop(),
                                           style: OutlinedButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(vertical: 12),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
                                             foregroundColor: Colors.white,
-                                            side: const BorderSide(color: Color(0xFF30363D)),
+                                            side: const BorderSide(
+                                              color: Color(0xFF30363D),
+                                            ),
                                           ),
                                           child: Text('points.cancel'.tr()),
                                         ),
@@ -346,40 +319,69 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
                                       Expanded(
                                         child: ElevatedButton(
                                           onPressed: () {
-                                            final points = int.tryParse(pointsController.text.trim());
-                                            final orderTotal = double.tryParse(orderController.text.trim()) ?? 0;
+                                            final points = int.tryParse(
+                                              pointsController.text.trim(),
+                                            );
+                                            final orderTotal =
+                                                double.tryParse(
+                                                  orderController.text.trim(),
+                                                ) ??
+                                                0;
 
                                             if (points == null || points <= 0) {
-                                              Toasters.show('points.enter_valid_points'.tr());
+                                              Toasters.errorKey(
+                                                'points.enter_valid_points',
+                                              );
                                               return;
                                             }
 
-                                            if (points > data.redeemablePoints) {
-                                              Toasters.show('points.points_exceed'.tr());
+                                            if (points >
+                                                data.redeemablePoints) {
+                                              Toasters.errorKey(
+                                                'points.points_exceed',
+                                              );
                                               return;
                                             }
 
                                             if (amountPerPoint <= 0) {
-                                              Toasters.show('points.calc_failed'.tr());
+                                              Toasters.errorKey(
+                                                'points.calc_failed',
+                                              );
                                               return;
                                             }
 
                                             if (orderTotal <= 0) {
-                                              Toasters.show('points.calc_failed'.tr());
+                                              Toasters.errorKey(
+                                                'points.calc_failed',
+                                              );
                                               return;
                                             }
 
-                                            if (minOrder > 0 && orderTotal < minOrder) {
-                                              Toasters.show('points.order_less_than_min'.tr());
+                                            if (minOrder > 0 &&
+                                                orderTotal < minOrder) {
+                                              Toasters.errorKey(
+                                                'points.order_less_than_min',
+                                              );
                                               return;
                                             }
 
-                                            Navigator.of(ctx).pop(_RedeemParams(points: points, orderTotal: orderTotal));
+                                            Navigator.of(ctx).pop(
+                                              _RedeemParams(
+                                                points: points,
+                                                orderTotal: orderTotal,
+                                              ),
+                                            );
                                           },
                                           style: ElevatedButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(vertical: 12),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                            backgroundColor: AppColors.brandPrimary,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
+                                            backgroundColor:
+                                                AppColors.brandPrimary,
                                             foregroundColor: Colors.white,
                                           ),
                                           child: Text('points.confirm'.tr()),
@@ -412,9 +414,9 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
     if (!mounted) return;
     _redeemFlowInProgress = true;
     context.read<LoyaltyPointsCubit>().redeem(
-          pointsToRedeem: res.points,
-          orderTotal: res.orderTotal,
-        );
+      pointsToRedeem: res.points,
+      orderTotal: res.orderTotal,
+    );
   }
 
   @override
@@ -424,14 +426,15 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
         BlocListener<CustomerInfoCubit, CustomerInfoState>(
           listener: (context, state) {
             if (state is CustomerInfoError) {
-              Toasters.show(state.message);
+              Toasters.errorFrom(state.message);
             }
             _tryRequestPoints(state);
           },
         ),
         BlocListener<LoyaltyPointsCubit, LoyaltyPointsState>(
           listener: (context, state) {
-            if (state is LoyaltyPointsLoading || state is LoyaltyPointsRedeemLoading) {
+            if (state is LoyaltyPointsLoading ||
+                state is LoyaltyPointsRedeemLoading) {
               if (!_silentReloadInProgress) {
                 showPrograssDelayDialog(context);
               }
@@ -452,17 +455,18 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
             if (_redeemFlowInProgress) {
               if (state is LoyaltyPointsSuccess) {
                 _redeemFlowInProgress = false;
-                _showRedeemResultDialog(success: true, message: 'points.updated_balance'.tr()).then((_) {
-                  if (!mounted) return;
-                  _silentReloadInProgress = true;
-                  _reloadPoints();
-                });
+                Toasters.successKey('points.redeem_success');
+                _silentReloadInProgress = true;
+                _reloadPoints();
                 return;
               }
 
               if (state is LoyaltyPointsError) {
                 _redeemFlowInProgress = false;
-                _showRedeemResultDialog(success: false, message: state.message);
+                Toasters.errorFrom(
+                  state.message,
+                  fallbackKey: 'points.redeem_failed',
+                );
                 return;
               }
             }
@@ -470,13 +474,21 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
         ),
       ],
       child: Directionality(
-        textDirection: context.locale.languageCode == 'ar' ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+        textDirection: context.locale.languageCode == 'ar'
+            ? ui.TextDirection.rtl
+            : ui.TextDirection.ltr,
         child: Scaffold(
           backgroundColor: Colors.black,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            title: Text('points.title'.tr(), style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+            title: Text(
+              'points.title'.tr(),
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
+            ),
             foregroundColor: Colors.white,
             iconTheme: const IconThemeData(color: Colors.white),
           ),
@@ -485,11 +497,7 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black,
-                  Color(0xFF050505),
-                  Color(0xFF0A0A0A),
-                ],
+                colors: [Colors.black, Color(0xFF050505), Color(0xFF0A0A0A)],
               ),
             ),
             child: SafeArea(
@@ -497,223 +505,264 @@ class _LoyaltyPointsScreenState extends State<LoyaltyPointsScreen> {
               bottom: false,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                  child: BlocBuilder<CustomerInfoCubit, CustomerInfoState>(
-              builder: (context, customerState) {
-                _tryRequestPoints(customerState);
+                child: BlocBuilder<CustomerInfoCubit, CustomerInfoState>(
+                  builder: (context, customerState) {
+                    _tryRequestPoints(customerState);
 
-                return BlocBuilder<LoyaltyPointsCubit, LoyaltyPointsState>(
-                  builder: (context, pointsState) {
-                    final cubit = context.read<LoyaltyPointsCubit>();
-                    final data = cubit.cachedData;
+                    return BlocBuilder<LoyaltyPointsCubit, LoyaltyPointsState>(
+                      builder: (context, pointsState) {
+                        final cubit = context.read<LoyaltyPointsCubit>();
+                        final data = cubit.cachedData;
 
-                    if (customerState is CustomerInfoLoading || customerState is CustomerInfoInitial) {
-                      return const _LoadingView();
-                    }
-
-                    if (pointsState is LoyaltyPointsError && data == null) {
-                      return _ErrorView(
-                        message: pointsState.message,
-                        onRetry: () {
-                          _requested = false;
-                          context.read<CustomerInfoCubit>().load();
-                        },
-                      );
-                    }
-
-                    if (pointsState is LoyaltyPointsLoading || pointsState is LoyaltyPointsInitial) {
-                      return const _LoadingView();
-                    }
-
-                    if (data == null || data.totalPoints == 0) {
-                      return _EmptyView();
-                    }
-
-                    return RefreshIndicator(
-                      onRefresh: () async {
-                        final cs = context.read<CustomerInfoCubit>().state;
-                        if (cs is CustomerInfoSuccess) {
-                          final contactId = _contactIdFromMobile(cs.info.mobile);
-                          if (contactId != null) {
-                            await context.read<LoyaltyPointsCubit>().load(contactId: contactId);
-                          }
+                        if (customerState is CustomerInfoLoading ||
+                            customerState is CustomerInfoInitial) {
+                          return const _LoadingView();
                         }
-                      },
-                      child: ListView(
-                        children: [
-                          AppCard(
-                            padding: const EdgeInsets.all(18),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 54,
-                                  height: 54,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.brandPrimarySoft,
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: const Icon(
-                                    Icons.workspace_premium_outlined,
-                                    color: AppColors.brandPrimary,
-                                    size: 28,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'points.balance_title'.tr(),
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.white70,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            '${data.totalPoints}',
-                                            style: const TextStyle(
-                                              fontSize: 34,
-                                              fontWeight: FontWeight.w900,
-                                              color: AppColors.brandDark,
-                                              height: 1,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Padding(
-                                            padding: EdgeInsets.only(bottom: 3),
-                                            child: Text(
-                                              'points.point_singular'.tr(),
-                                              style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
+
+                        if (pointsState is LoyaltyPointsError && data == null) {
+                          return _ErrorView(
+                            message: pointsState.message,
+                            onRetry: () {
+                              _requested = false;
+                              context.read<CustomerInfoCubit>().load();
+                            },
+                          );
+                        }
+
+                        if (pointsState is LoyaltyPointsLoading ||
+                            pointsState is LoyaltyPointsInitial) {
+                          return const _LoadingView();
+                        }
+
+                        if (data == null || data.totalPoints == 0) {
+                          return _EmptyView();
+                        }
+
+                        return RefreshIndicator(
+                          onRefresh: () async {
+                            final cs = context.read<CustomerInfoCubit>().state;
+                            if (cs is CustomerInfoSuccess) {
+                              final contactId = _contactIdFromMobile(
+                                cs.info.mobile,
+                              );
+                              if (contactId != null) {
+                                await context.read<LoyaltyPointsCubit>().load(
+                                  contactId: contactId,
+                                );
+                              }
+                            }
+                          },
+                          child: ListView(
                             children: [
-                              Expanded(
-                                child: _StatCard(
-                                  icon: Icons.check_circle_outline,
-                                  title: 'points.redeemable'.tr(),
-                                  value: '${data.redeemablePoints}',
-                                  subtitle: 'points.point_singular'.tr(),
-                                  color: AppColors.brandPrimary,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _StatCard(
-                                  icon: Icons.payments_outlined,
-                                  title: 'points.equals'.tr(),
-                                  value: data.redeemableAmount.toStringAsFixed(0),
-                                  subtitle: 'points.currency'.tr(),
-                                  color: AppColors.brandDark,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _StatCard(
-                                  icon: Icons.shopping_bag_outlined,
-                                  title: 'points.used'.tr(),
-                                  value: '${data.pointsUsed}',
-                                  subtitle: 'points.point_singular'.tr(),
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _StatCard(
-                                  icon: Icons.access_time,
-                                  title: 'points.expired'.tr(),
-                                  value: '${data.pointsExpired}',
-                                  subtitle: 'points.point_singular'.tr(),
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          AppCard(
-                            padding: const EdgeInsets.all(18),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                              AppCard(
+                                padding: const EdgeInsets.all(18),
+                                child: Row(
                                   children: [
                                     Container(
-                                      width: 40,
-                                      height: 40,
+                                      width: 54,
+                                      height: 54,
                                       decoration: BoxDecoration(
                                         color: AppColors.brandPrimarySoft,
-                                        borderRadius: BorderRadius.circular(14),
+                                        borderRadius: BorderRadius.circular(18),
                                       ),
-                                      child: const Icon(Icons.redeem_outlined, color: AppColors.brandPrimary, size: 22),
+                                      child: const Icon(
+                                        Icons.workspace_premium_outlined,
+                                        color: AppColors.brandPrimary,
+                                        size: 28,
+                                      ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: Text(
-                                        'points.redeem_title'.tr(),
-                                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'points.balance_title'.tr(),
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Text(
+                                                '${data.totalPoints}',
+                                                style: const TextStyle(
+                                                  fontSize: 34,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: AppColors.brandDark,
+                                                  height: 1,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Padding(
+                                                padding: EdgeInsets.only(
+                                                  bottom: 3,
+                                                ),
+                                                child: Text(
+                                                  'points.point_singular'.tr(),
+                                                  style: const TextStyle(
+                                                    color: Colors.white70,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  data.enableRp
-                                      ? 'points.redeem_description_enabled'.tr()
-                                      : 'points.redeem_description_disabled'.tr(),
-                                  style: const TextStyle(color: Colors.white70, height: 1.5, fontWeight: FontWeight.w600),
-                                ),
-                                const SizedBox(height: 14),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: (!data.enableRp || data.redeemablePoints <= 0)
-                                        ? null
-                                        : () => _showRedeemDialog(data),
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                      backgroundColor: AppColors.brandPrimary,
-                                      foregroundColor: Colors.white,
-                                      disabledBackgroundColor: Colors.black12,
-                                      disabledForegroundColor: Colors.black38,
-                                      elevation: 0,
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _StatCard(
+                                      icon: Icons.check_circle_outline,
+                                      title: 'points.redeemable'.tr(),
+                                      value: '${data.redeemablePoints}',
+                                      subtitle: 'points.point_singular'.tr(),
+                                      color: AppColors.brandPrimary,
                                     ),
-                                    child: Text('points.redeem_title'.tr()),
                                   ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _StatCard(
+                                      icon: Icons.payments_outlined,
+                                      title: 'points.equals'.tr(),
+                                      value: data.redeemableAmount
+                                          .toStringAsFixed(0),
+                                      subtitle: 'points.currency'.tr(),
+                                      color: AppColors.brandDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _StatCard(
+                                      icon: Icons.shopping_bag_outlined,
+                                      title: 'points.used'.tr(),
+                                      value: '${data.pointsUsed}',
+                                      subtitle: 'points.point_singular'.tr(),
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _StatCard(
+                                      icon: Icons.access_time,
+                                      title: 'points.expired'.tr(),
+                                      value: '${data.pointsExpired}',
+                                      subtitle: 'points.point_singular'.tr(),
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              AppCard(
+                                padding: const EdgeInsets.all(18),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.brandPrimarySoft,
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.redeem_outlined,
+                                            color: AppColors.brandPrimary,
+                                            size: 22,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            'points.redeem_title'.tr(),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      data.enableRp
+                                          ? 'points.redeem_description_enabled'
+                                                .tr()
+                                          : 'points.redeem_description_disabled'
+                                                .tr(),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        height: 1.5,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 14),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        onPressed:
+                                            (!data.enableRp ||
+                                                data.redeemablePoints <= 0)
+                                            ? null
+                                            : () => _showRedeemDialog(data),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 14,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                          ),
+                                          backgroundColor:
+                                              AppColors.brandPrimary,
+                                          foregroundColor: Colors.white,
+                                          disabledBackgroundColor:
+                                              Colors.black12,
+                                          disabledForegroundColor:
+                                              Colors.black38,
+                                          elevation: 0,
+                                        ),
+                                        child: Text('points.redeem_title'.tr()),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     );
                   },
-                );
-              },
+                ),
+              ),
             ),
           ),
         ),
-        ),
       ),
-    ));
+    );
   }
 }
 
@@ -755,7 +804,11 @@ class _StatCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700, fontSize: 13),
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -766,21 +819,30 @@ class _StatCard extends StatelessWidget {
             children: [
               Text(
                 value,
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color, height: 1),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: color,
+                  height: 1,
+                ),
               ),
               const SizedBox(width: 6),
               Padding(
                 padding: const EdgeInsets.only(bottom: 2),
                 child: Text(
                   subtitle,
-                  style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700, fontSize: 13),
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
           ),
         ],
       ),
-    );  
+    );
   }
 }
 
@@ -868,15 +930,30 @@ class _ErrorView extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.workspace_premium_outlined, color: AppColors.brandPrimary, size: 36),
+            child: const Icon(
+              Icons.workspace_premium_outlined,
+              color: AppColors.brandPrimary,
+              size: 36,
+            ),
           ),
           const SizedBox(height: 18),
-          Text('points.load_failed'.tr(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white)),
+          Text(
+            'points.load_failed'.tr(),
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 18,
+              color: Colors.white,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white70, height: 1.5, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              color: Colors.white70,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 20),
           SizedBox(
@@ -885,12 +962,17 @@ class _ErrorView extends StatelessWidget {
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 backgroundColor: AppColors.brandPrimary,
                 foregroundColor: Colors.white,
                 elevation: 0,
               ),
-              child: Text('points.retry'.tr(), style: const TextStyle(fontWeight: FontWeight.w900)),
+              child: Text(
+                'points.retry'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
             ),
           ),
         ],
@@ -940,21 +1022,20 @@ class _EmptyView extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-              const SizedBox(height: 8),
-              Text(
-                'points.no_points_subtitle'.tr(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white70,
-                ),
+            const SizedBox(height: 8),
+            Text(
+              'points.no_points_subtitle'.tr(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white70,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
-    
+      ),
+    );
   }
 }
 

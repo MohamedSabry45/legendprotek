@@ -11,34 +11,51 @@ import 'business_location_state.dart';
 class BusinessLocationCubit extends Cubit<BusinessLocationState> {
   BusinessLocationCubit() : super(BusinessLocationInitial());
 
-  static BusinessLocationCubit get(context) => BlocProvider.of<BusinessLocationCubit>(context);
+  static BusinessLocationCubit get(context) =>
+      BlocProvider.of<BusinessLocationCubit>(context);
 
-  final BusinessLocationRemoteDataSource _remote = BusinessLocationRemoteDataSource();
+  final BusinessLocationRemoteDataSource _remote =
+      BusinessLocationRemoteDataSource();
   BusinessLocation? _cachedLocation;
 
   BusinessLocation? get cachedLocation => _cachedLocation;
 
   Future<bool> _isGuestMode() async {
-    return await CacheHelper.getDataAsync<bool>(key: PrefKeys.kIsGuestMode) ?? false;
+    return await CacheHelper.getDataAsync<bool>(key: PrefKeys.kIsGuestMode) ??
+        false;
+  }
+
+  void _safeEmit(BusinessLocationState state) {
+    if (isClosed) return;
+    try {
+      emit(state);
+    } on StateError {
+      return;
+    }
   }
 
   Future<void> fetchBusinessLocation() async {
+    if (isClosed) return;
     if (_cachedLocation != null) {
-      emit(BusinessLocationSuccess(_cachedLocation!));
+      _safeEmit(BusinessLocationSuccess(_cachedLocation!));
       return;
     }
 
-    emit(BusinessLocationLoading());
+    _safeEmit(BusinessLocationLoading());
     try {
       if (await _isGuestMode()) {
-        emit(BusinessLocationError('Guest mode - contact info not available'));
+        _safeEmit(
+          BusinessLocationError('Guest mode - contact info not available'),
+        );
         return;
       }
       final location = await _remote.getBusinessLocation();
       _cachedLocation = location;
-      emit(BusinessLocationSuccess(location));
+      if (isClosed) return;
+      _safeEmit(BusinessLocationSuccess(location));
     } catch (e) {
-      emit(BusinessLocationError(e.toString()));
+      if (isClosed) return;
+      _safeEmit(BusinessLocationError(e.toString()));
     }
   }
 

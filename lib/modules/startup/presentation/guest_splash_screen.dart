@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:reservation_workshop/config/routes/routes_name.dart';
-import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/core/functions/localization_helper.dart';
 import 'package:reservation_workshop/core/network/local/cache_helper.dart';
 import 'package:reservation_workshop/core/utils/strings/prefkeys.dart';
@@ -28,12 +27,11 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
     await CacheHelper.init();
   }
 
-  void _toggleLanguage() {
-    if (context.locale.languageCode == 'en') {
-      context.setLocale(const Locale('ar'));
-    } else {
-      context.setLocale(const Locale('en'));
-    }
+  Future<void> _toggleLanguage() async {
+    final next = context.locale.languageCode == 'en' ? 'ar' : 'en';
+    await CacheHelper.saveData(key: PrefKeys.kLocaleCode, value: next);
+    if (!mounted) return;
+    context.setLocale(Locale(next));
   }
 
   @override
@@ -55,7 +53,9 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Align(
-                    alignment: isLtrValue ? Alignment.topRight : Alignment.topLeft,
+                    alignment: isLtrValue
+                        ? Alignment.topRight
+                        : Alignment.topLeft,
                     child: GestureDetector(
                       onTap: _toggleLanguage,
                       child: Container(
@@ -99,7 +99,9 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
                             delay: 800,
                             duration: 700,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Image.asset(
                                 'assets/images/logo.png',
                                 height: 300,
@@ -118,7 +120,9 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
                             delay: 1100,
                             duration: 700,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Text(
                                 isLtrValue
                                     ? 'Login to Unlock\nawesome new features'
@@ -149,7 +153,9 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
                             delay: 2100,
                             duration: 700,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: SizedBox(
                                 width: double.infinity,
                                 height: 54, // زيادة الارتفاع
@@ -159,11 +165,15 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
                                     RoutesName.loginScreen,
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color.fromARGB(204, 148, 114, 11),
+                                    backgroundColor: const Color.fromARGB(
+                                      204,
+                                      148,
+                                      114,
+                                      11,
+                                    ),
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      
                                     ),
                                     elevation: 0,
                                   ),
@@ -204,7 +214,8 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
                             child: Padding(
                               padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   TextButton(
                                     onPressed: () => Navigator.pushNamed(
@@ -231,7 +242,10 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
                                   ),
                                   TextButton(
                                     onPressed: () async {
-                                      await CacheHelper.saveData(key: PrefKeys.kIsGuestMode, value: true);
+                                      await CacheHelper.saveData(
+                                        key: PrefKeys.kIsGuestMode,
+                                        value: true,
+                                      );
                                       if (!mounted) return;
                                       Navigator.pushNamedAndRemoveUntil(
                                         context,
@@ -240,7 +254,9 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
                                       );
                                     },
                                     child: Text(
-                                      isLtrValue ? 'Skip Login' : 'تخطي تسجيل الدخول',
+                                      isLtrValue
+                                          ? 'Skip Login'
+                                          : 'تخطي تسجيل الدخول',
                                       style: TextStyle(
                                         fontFamily: 'Norsal',
                                         color: Colors.white70,
@@ -265,8 +281,10 @@ class _GuestSplashScreenState extends State<GuestSplashScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
         ),
       ),
-    )));
+    );
   }
 }

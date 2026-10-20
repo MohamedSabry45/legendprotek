@@ -48,17 +48,29 @@ class _MenuAccountScreenState extends State<MenuAccountScreen> {
     super.dispose();
   }
 
-  void _prefillBasicInfoIfNeeded({required String name, required String mobile}) {
+  void _prefillBasicInfoIfNeeded({
+    required String name,
+    required String mobile,
+  }) {
     if (_didPrefillBasicInfo) return;
 
-    final parts = name.trim().split(RegExp(r'\s+')).where((e) => e.trim().isNotEmpty).toList();
+    final parts = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((e) => e.trim().isNotEmpty)
+        .toList();
     _firstNameController.text = parts.isNotEmpty ? parts.first : '';
-    _lastNameController.text = parts.length >= 2 ? parts.sublist(1).join(' ') : '';
+    _lastNameController.text = parts.length >= 2
+        ? parts.sublist(1).join(' ')
+        : '';
     _mobileController.text = mobile;
     _didPrefillBasicInfo = true;
   }
 
-  InputDecoration _fieldDecoration({required String label, required IconData icon}) {
+  InputDecoration _fieldDecoration({
+    required String label,
+    required IconData icon,
+  }) {
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.5)),
@@ -81,27 +93,30 @@ class _MenuAccountScreenState extends State<MenuAccountScreen> {
     );
   }
 
-  Future<void> _saveBasicInfo(BuildContext context, {required int contactId}) async {
+  Future<void> _saveBasicInfo(
+    BuildContext context, {
+    required int contactId,
+  }) async {
     final valid = _basicInfoFormKey.currentState?.validate() ?? false;
     if (!valid) return;
 
     showPrograssDelayDialog(context);
     try {
       await context.read<CustomerInfoCubit>().updateBasicInfo(
-            id: contactId,
-            firstName: _firstNameController.text.trim(),
-            lastName: _lastNameController.text.trim(),
-            email: _emailController.text.trim(),
-            mobile: _mobileController.text.trim(),
-          );
+        id: contactId,
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
+        mobile: _mobileController.text.trim(),
+      );
 
       if (!context.mounted) return;
       Navigator.of(context, rootNavigator: true).maybePop();
-      Toasters.show('Updated successfully');
+      Toasters.successKey('account.update_success');
     } catch (e) {
       if (!context.mounted) return;
       Navigator.of(context, rootNavigator: true).maybePop();
-      Toasters.show(e.toString());
+      Toasters.errorFrom(e, fallbackKey: 'account.update_failed');
     }
   }
 
@@ -111,15 +126,26 @@ class _MenuAccountScreenState extends State<MenuAccountScreen> {
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: const Color(0xFF050505),
-          title: Text('account.delete_account'.tr(), style: const TextStyle(color: Colors.white)),
-          content: Text('menu.logout_title'.tr(), style: TextStyle(color: Colors.white.withOpacity(0.8))),
+          title: Text(
+            'account.delete_account'.tr(),
+            style: const TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            'account.delete_confirm'.tr(),
+            style: TextStyle(color: Colors.white.withOpacity(0.8)),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text('menu.no'.tr(), style: TextStyle(color: Colors.white.withOpacity(0.6))),
+              child: Text(
+                'menu.no'.tr(),
+                style: TextStyle(color: Colors.white.withOpacity(0.6)),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD4AF37)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFD4AF37),
+              ),
               onPressed: () => Navigator.of(ctx).pop(true),
               child: Text('menu.yes'.tr()),
             ),
@@ -221,6 +247,7 @@ class _MenuAccountScreenState extends State<MenuAccountScreen> {
             Navigator.of(context, rootNavigator: true).maybePop();
 
             if (state is DeleteAccountSuccess) {
+              Toasters.successKey('account.delete_success');
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 RoutesName.loginScreen,
@@ -230,7 +257,10 @@ class _MenuAccountScreenState extends State<MenuAccountScreen> {
             }
 
             if (state is DeleteAccountError) {
-              Toasters.show(state.message);
+              Toasters.errorFrom(
+                state.message,
+                fallbackKey: 'account.delete_failed',
+              );
               return;
             }
           },
@@ -245,11 +275,7 @@ class _MenuAccountScreenState extends State<MenuAccountScreen> {
               gradient: const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black,
-                  Color(0xFF050505),
-                  Color(0xFF0A0A0A),
-                ],
+                colors: [Colors.black, Color(0xFF050505), Color(0xFF0A0A0A)],
               ),
             ),
             child: SafeArea(
@@ -260,7 +286,10 @@ class _MenuAccountScreenState extends State<MenuAccountScreen> {
                   children: [
                     // Back button
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                      ),
                       onPressed: () => Navigator.of(context).maybePop(),
                     ),
                     const SizedBox(height: 16),
@@ -327,200 +356,225 @@ class _MenuAccountScreenState extends State<MenuAccountScreen> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF050505),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.3)),
-                      ),
-                        child: BlocBuilder<CustomerInfoCubit,
-                            CustomerInfoState>(
-                          builder: (context, state) {
-                            final name = state is CustomerInfoSuccess
-                                ? state.info.name
-                                : '-';
-                            final phone = state is CustomerInfoSuccess
-                                ? state.info.mobile
-                                : '-';
-
-                            final cars = state is CustomerInfoSuccess
-                                ? state.info.cars
-                                : <CustomerCar>[];
-
-                            final carLabel = cars.isNotEmpty
-                                ? '${cars.first.device} ${cars.first.model}'
-                                : '-';
-
-                            if (state is CustomerInfoSuccess) {
-                              _prefillBasicInfoIfNeeded(name: state.info.name, mobile: state.info.mobile);
-                              _carController.text = cars.isNotEmpty
-                                  ? '${cars.first.device} ${cars.first.model}'
-                                  : '-';
-                            }
-
-                            return Form(
-                              key: _basicInfoFormKey,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextFormField(
-                                          controller: _firstNameController,
-                                          enabled: state is CustomerInfoSuccess,
-                                          style: const TextStyle(color: Colors.white),
-                                          cursorColor: Colors.white,
-                                          decoration: _fieldDecoration(
-                                            label: 'account.first_name'.tr(),
-                                            icon: Icons.person_outline,
-                                          ),
-                                          validator: (_) => null,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Expanded(
-                                        child: TextFormField(
-                                          controller: _lastNameController,
-                                          enabled: state is CustomerInfoSuccess,
-                                          style: const TextStyle(color: Colors.white),
-                                          cursorColor: Colors.white,
-                                          decoration: _fieldDecoration(
-                                            label: 'account.last_name'.tr(),
-                                            icon: Icons.person_outline,
-                                          ),
-                                          validator: (_) => null,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  TextFormField(
-                                    controller: _emailController,
-                                    enabled: state is CustomerInfoSuccess,
-                                    style: const TextStyle(color: Colors.white),
-                                    cursorColor: Colors.white,
-                                    decoration: _fieldDecoration(
-                                      label: 'account.email'.tr(),
-                                      icon: Icons.email_outlined,
-                                    ),
-                                    keyboardType: TextInputType.emailAddress,
-                                    validator: (v) {
-                                      if (v == null || v.trim().isEmpty) return null;
-                                      final value = v.trim();
-                                      final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value);
-                                      return ok ? null : 'Invalid email';
-                                    },
-                                  ),
-                                  const SizedBox(height: 12),
-                                  TextFormField(
-                                    controller: _mobileController,
-                                    enabled: state is CustomerInfoSuccess,
-                                    style: const TextStyle(color: Colors.white),
-                                    cursorColor: Colors.white,
-                                    decoration: _fieldDecoration(
-                                      label: 'account.mobile'.tr(),
-                                      icon: Icons.phone_android,
-                                    ),
-                                    keyboardType: TextInputType.phone,
-                                    validator: (_) => null,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  TextFormField(
-                                    controller: _carController,
-                                    enabled: false,
-                                    readOnly: true,
-                                    style: const TextStyle(color: Colors.white),
-                                    cursorColor: Colors.white,
-                                    decoration: _fieldDecoration(
-                                      label: 'account.car'.tr(),
-                                      icon: Icons.directions_car,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  TextFormField(
-                                    controller: _passwordController,
-                                    enabled: false,
-                                    readOnly: true,
-                                    obscureText: true,
-                                    style: const TextStyle(color: Colors.white),
-                                    cursorColor: Colors.white,
-                                    decoration: _fieldDecoration(
-                                      label: 'account.password'.tr(),
-                                      icon: Icons.lock_outline,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  InkWell(
-                                    onTap: () async {
-                                      AppConstants.token = null;
-                                      await CacheHelper.clearSession();
-                                      await CacheHelper.saveData(key: PrefKeys.kIsGuestMode, value: true);
-                                      if (!context.mounted) return;
-                                      Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        RoutesName.loginScreen,
-                                        (route) => false,
-                                      );
-                                    },
-                                    child: IgnorePointer(
-                                      child: TextFormField(
-                                        controller: _logoutController..text = 'account.logout'.tr(),
-                                        enabled: false,
-                                        readOnly: true,
-                                        style: const TextStyle(color: Colors.white),
-                                        cursorColor: Colors.white,
-                                        decoration: _fieldDecoration(
-                                          label: 'account.logout'.tr(),
-                                          icon: Icons.logout,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  InkWell(
-                                    onTap: () => _confirmDeleteAccount(context),
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                      child: Text(
-                                        'account.delete_account'.tr(),
-                                        style: const TextStyle(
-                                          color: const Color(0xFFD4AF37),
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 48,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFFD4AF37),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(14),
-                                        ),
-                                      ),
-                                      onPressed: state is CustomerInfoSuccess
-                                          ? () => _saveBasicInfo(context, contactId: state.info.id)
-                                          : null,
-                                      child: Text(
-                                        'account.save'.tr(),
-                                        style: const TextStyle(fontWeight: FontWeight.w900),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                        border: Border.all(
+                          color: const Color(0xFFD4AF37).withOpacity(0.3),
                         ),
                       ),
-                    ],
-                  ),
+                      child: BlocBuilder<CustomerInfoCubit, CustomerInfoState>(
+                        builder: (context, state) {
+                          final name = state is CustomerInfoSuccess
+                              ? state.info.name
+                              : '-';
+                          final phone = state is CustomerInfoSuccess
+                              ? state.info.mobile
+                              : '-';
+
+                          final cars = state is CustomerInfoSuccess
+                              ? state.info.cars
+                              : <CustomerCar>[];
+
+                          final carLabel = cars.isNotEmpty
+                              ? '${cars.first.device} ${cars.first.model}'
+                              : '-';
+
+                          if (state is CustomerInfoSuccess) {
+                            _prefillBasicInfoIfNeeded(
+                              name: state.info.name,
+                              mobile: state.info.mobile,
+                            );
+                            _carController.text = cars.isNotEmpty
+                                ? '${cars.first.device} ${cars.first.model}'
+                                : '-';
+                          }
+
+                          return Form(
+                            key: _basicInfoFormKey,
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _firstNameController,
+                                        enabled: state is CustomerInfoSuccess,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                        cursorColor: Colors.white,
+                                        decoration: _fieldDecoration(
+                                          label: 'account.first_name'.tr(),
+                                          icon: Icons.person_outline,
+                                        ),
+                                        validator: (_) => null,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _lastNameController,
+                                        enabled: state is CustomerInfoSuccess,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                        cursorColor: Colors.white,
+                                        decoration: _fieldDecoration(
+                                          label: 'account.last_name'.tr(),
+                                          icon: Icons.person_outline,
+                                        ),
+                                        validator: (_) => null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _emailController,
+                                  enabled: state is CustomerInfoSuccess,
+                                  style: const TextStyle(color: Colors.white),
+                                  cursorColor: Colors.white,
+                                  decoration: _fieldDecoration(
+                                    label: 'account.email'.tr(),
+                                    icon: Icons.email_outlined,
+                                  ),
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty)
+                                      return null;
+                                    final value = v.trim();
+                                    final ok = RegExp(
+                                      r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                                    ).hasMatch(value);
+                                    return ok ? null : 'Invalid email';
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _mobileController,
+                                  enabled: state is CustomerInfoSuccess,
+                                  style: const TextStyle(color: Colors.white),
+                                  cursorColor: Colors.white,
+                                  decoration: _fieldDecoration(
+                                    label: 'account.mobile'.tr(),
+                                    icon: Icons.phone_android,
+                                  ),
+                                  keyboardType: TextInputType.phone,
+                                  validator: (_) => null,
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _carController,
+                                  enabled: false,
+                                  readOnly: true,
+                                  style: const TextStyle(color: Colors.white),
+                                  cursorColor: Colors.white,
+                                  decoration: _fieldDecoration(
+                                    label: 'account.car'.tr(),
+                                    icon: Icons.directions_car,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _passwordController,
+                                  enabled: false,
+                                  readOnly: true,
+                                  obscureText: true,
+                                  style: const TextStyle(color: Colors.white),
+                                  cursorColor: Colors.white,
+                                  decoration: _fieldDecoration(
+                                    label: 'account.password'.tr(),
+                                    icon: Icons.lock_outline,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                InkWell(
+                                  onTap: () async {
+                                    AppConstants.token = null;
+                                    await CacheHelper.clearSession();
+                                    await CacheHelper.saveData(
+                                      key: PrefKeys.kIsGuestMode,
+                                      value: true,
+                                    );
+                                    if (!context.mounted) return;
+                                    Navigator.pushNamedAndRemoveUntil(
+                                      context,
+                                      RoutesName.loginScreen,
+                                      (route) => false,
+                                    );
+                                  },
+                                  child: IgnorePointer(
+                                    child: TextFormField(
+                                      controller: _logoutController
+                                        ..text = 'account.logout'.tr(),
+                                      enabled: false,
+                                      readOnly: true,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                      cursorColor: Colors.white,
+                                      decoration: _fieldDecoration(
+                                        label: 'account.logout'.tr(),
+                                        icon: Icons.logout,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                InkWell(
+                                  onTap: () => _confirmDeleteAccount(context),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 10,
+                                    ),
+                                    child: Text(
+                                      'account.delete_account'.tr(),
+                                      style: const TextStyle(
+                                        color: const Color(0xFFD4AF37),
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 48,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFD4AF37),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    onPressed: state is CustomerInfoSuccess
+                                        ? () => _saveBasicInfo(
+                                            context,
+                                            contactId: state.info.id,
+                                          )
+                                        : null,
+                                    child: Text(
+                                      'account.save'.tr(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
-      ); 
+      ),
+    );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/style/app_colors.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_cubit.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_state.dart';
 import 'package:reservation_workshop/modules/spare_parts/data/datasources/sell_proforma_remote_datasource.dart';
@@ -43,9 +45,13 @@ class _SparePartsCartScreenState extends State<SparePartsCartScreen> {
     super.initState();
 
     _contactIdController = TextEditingController();
-    _transactionDateController = TextEditingController(text: _defaultTransactionDate());
+    _transactionDateController = TextEditingController(
+      text: _defaultTransactionDate(),
+    );
 
-    _shippingDetailsController = TextEditingController(text: 'Standard delivery');
+    _shippingDetailsController = TextEditingController(
+      text: 'Standard delivery',
+    );
     _shippingAddressController = TextEditingController();
     _shippingStatusController = TextEditingController(text: 'packed');
     _deliveredToController = TextEditingController();
@@ -98,8 +104,15 @@ class _SparePartsCartScreenState extends State<SparePartsCartScreen> {
     if (time == null || !mounted) return;
 
     String two(int v) => v.toString().padLeft(2, '0');
-    final dt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-    _transactionDateController.text = '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:00';
+    final dt = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+    _transactionDateController.text =
+        '${dt.year}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}:00';
     setState(() {});
   }
 
@@ -108,9 +121,7 @@ class _SparePartsCartScreenState extends State<SparePartsCartScreen> {
 
     final cartState = context.read<CartCubit>().state;
     if (cartState is! CartUpdated || cartState.items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cart is empty')),
-      );
+      Toasters.errorKey('spare_parts.cart_empty');
       return;
     }
 
@@ -118,9 +129,7 @@ class _SparePartsCartScreenState extends State<SparePartsCartScreen> {
 
     final contactId = int.tryParse(_contactIdController.text.trim()) ?? 0;
     if (contactId <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid contact id')),
-      );
+      Toasters.errorKey('spare_parts.invalid_contact');
       return;
     }
 
@@ -161,24 +170,29 @@ class _SparePartsCartScreenState extends State<SparePartsCartScreen> {
       final invoiceUrl = res.isNotEmpty ? res.first.invoiceUrl : '';
       final invoiceNo = res.isNotEmpty ? res.first.invoiceNo : '';
 
+      Toasters.successKey('spare_parts.proforma_created');
       await showDialog<void>(
         context: context,
         builder: (ctx) {
           return AlertDialog(
-            title: const Text('Proforma created'),
+            title: Text('spare_parts.proforma_created'.tr()),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Invoice: $invoiceNo'),
+                Text('spare_parts.invoice'.tr(args: [invoiceNo])),
                 const SizedBox(height: 8),
-                Text(invoiceUrl.isEmpty ? 'No invoice url' : invoiceUrl),
+                Text(
+                  invoiceUrl.isEmpty
+                      ? 'spare_parts.no_invoice_url'.tr()
+                      : invoiceUrl,
+                ),
               ],
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('OK'),
+                child: Text('common.ok'.tr()),
               ),
             ],
           );
@@ -190,9 +204,7 @@ class _SparePartsCartScreenState extends State<SparePartsCartScreen> {
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      Toasters.errorFrom(e, fallbackKey: 'spare_parts.create_failed');
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -206,24 +218,21 @@ class _SparePartsCartScreenState extends State<SparePartsCartScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Cart',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            color: Colors.black87,
-          ),
+        title: Text(
+          'spare_parts.cart_title'.tr(),
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black87),
         ),
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (_) => BranchCubit()),
-        ],
+        providers: [BlocProvider(create: (_) => BranchCubit())],
         child: Form(
           key: _formKey,
           child: BlocBuilder<CartCubit, CartState>(
             builder: (context, cartState) {
-              final items = cartState is CartUpdated ? cartState.items : const <SpareCartItem>[];
+              final items = cartState is CartUpdated
+                  ? cartState.items
+                  : const <SpareCartItem>[];
 
               return Column(
                 children: [
@@ -248,13 +257,16 @@ class _SparePartsCartScreenState extends State<SparePartsCartScreen> {
                                     color: AppColors.brandPrimarySoft,
                                     borderRadius: BorderRadius.circular(16),
                                   ),
-                                  child: const Icon(Icons.shopping_cart_outlined, color: AppColors.brandPrimary),
+                                  child: const Icon(
+                                    Icons.shopping_cart_outlined,
+                                    color: AppColors.brandPrimary,
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
-                                const Expanded(
+                                Expanded(
                                   child: Text(
-                                    'Your cart is empty',
-                                    style: TextStyle(
+                                    'spare_parts.cart_empty'.tr(),
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.w900,
                                       color: Colors.black87,
                                       height: 1.2,
@@ -280,13 +292,18 @@ class _SparePartsCartScreenState extends State<SparePartsCartScreen> {
                           deliveredToController: _deliveredToController,
                           initialShippingType: _shippingType,
                           initialBranchId: _branchId,
-                          onShippingTypeChanged: (v) => setState(() => _shippingType = v),
+                          onShippingTypeChanged: (v) =>
+                              setState(() => _shippingType = v),
                           onBranchChanged: (v) => setState(() => _branchId = v),
                         ),
                         const SizedBox(height: 12),
                         CartSummaryCard(
-                          totalQuantity: cartState is CartUpdated ? cartState.totalQuantity : 0,
-                          subtotal: cartState is CartUpdated ? cartState.subtotal : 0,
+                          totalQuantity: cartState is CartUpdated
+                              ? cartState.totalQuantity
+                              : 0,
+                          subtotal: cartState is CartUpdated
+                              ? cartState.subtotal
+                              : 0,
                           total: cartState is CartUpdated ? cartState.total : 0,
                         ),
                         const SizedBox(height: 16),

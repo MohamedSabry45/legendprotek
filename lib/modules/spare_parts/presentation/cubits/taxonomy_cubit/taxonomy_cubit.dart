@@ -9,11 +9,14 @@ class TaxonomyCubit extends Cubit<TaxonomyState> {
   late final TaxonomyRemoteDataSource _remote = TaxonomyRemoteDataSource();
 
   Future<void> loadProductCategories({int page = 1}) async {
+    if (isClosed) return;
     emit(TaxonomyLoading());
     try {
       final categories = await _remote.getProductCategories(page: page);
+      if (isClosed) return;
       emit(TaxonomySuccess(categories));
     } catch (e) {
+      if (isClosed) return;
       emit(TaxonomyError(e.toString()));
     }
   }

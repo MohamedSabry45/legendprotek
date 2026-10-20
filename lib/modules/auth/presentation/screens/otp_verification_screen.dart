@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/services.dart';
 
 import 'package:reservation_workshop/config/routes/routes_name.dart';
-import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/config/style/text_styles.dart';
 import 'package:reservation_workshop/core/components/app_textfield.dart';
 import 'package:reservation_workshop/core/components/dialogs/prograss_delay_dialog.dart';
 import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/core/functions/validationform.dart';
-import 'package:reservation_workshop/core/utils/strings/app_strings.dart';
+import 'package:reservation_workshop/core/widgets/otp_code_input.dart';
 import 'package:reservation_workshop/core/widgets/app_single_button.dart';
 import 'package:reservation_workshop/core/widgets/logo_image_widget.dart';
 import 'package:reservation_workshop/core/widgets/splash_image_widget.dart';
@@ -32,10 +30,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   /// OTP (5 digits)
-  final List<TextEditingController> _codeControllers =
-      List.generate(5, (_) => TextEditingController());
-  final List<FocusNode> _codeFocusNodes =
-      List.generate(5, (_) => FocusNode());
+  final TextEditingController _otpController = TextEditingController();
 
   bool _isObscured = true;
   bool _didPrefill = false;
@@ -60,96 +55,26 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     _nameController.dispose();
     _mobileController.dispose();
     _passwordController.dispose();
-
-    for (final c in _codeControllers) {
-      c.dispose();
-    }
-    for (final f in _codeFocusNodes) {
-      f.dispose();
-    }
+    _otpController.dispose();
 
     super.dispose();
   }
 
   // ================= OTP =================
   Widget buildCodeInputs() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(5, (index) {
-        return Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: SizedBox(
-            width: 56,
-            height: 56,
-            child: TextFormField(
-              controller: _codeControllers[index],
-              focusNode: _codeFocusNodes[index],
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              maxLength: 1,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-              decoration: InputDecoration(
-                counterText: '',
-                filled: true,
-                fillColor: const Color(0xFF050505),
-
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: const Color(0xFF0A0A0A),
-                    width: 1.5,
-                  ),
-                ),
-
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: Colors.white,
-                    width: 2,
-                  ),
-                ),
-
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(
-                    color: const Color(0xFFD4AF37),
-                    width: 1.5,
-                  ),
-                ),
-              ),
-              onChanged: (value) {
-                if (value.isNotEmpty && index < 4) {
-                  _codeFocusNodes[index + 1].requestFocus();
-                } else if (value.isEmpty && index > 0) {
-                  _codeFocusNodes[index - 1].requestFocus();
-                }
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return '';
-                }
-                return null;
-              },
-            ),
-          ),
-        );
-      }),
+    return OtpCodeInput(
+      controller: _otpController,
+      validator: (value) {
+        if (value == null || value.length != 5) {
+          return 'auth.otp_required'.tr();
+        }
+        return null;
+      },
     );
   }
 
   String getCodeValue() {
-    return _codeControllers.map((c) => c.text).join();
+    return _otpController.text;
   }
 
   @override
@@ -165,9 +90,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
         if (state is RegisterSuccess) {
           Navigator.of(context, rootNavigator: true).maybePop();
+          Toasters.success('auth.register_success'.tr());
           Navigator.pushNamedAndRemoveUntil(
             context,
-            RoutesName.chooseCarScreen,
+            RoutesName.homeScreen,
             (route) => false,
           );
           return;
@@ -175,7 +101,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
         if (state is RegisterError) {
           Navigator.of(context, rootNavigator: true).maybePop();
-          Toasters.show(state.message);
+          Toasters.errorFrom(
+            state.message,
+            fallbackKey: 'auth.register_failed',
+          );
           return;
         }
       },
@@ -211,9 +140,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     validator: ValidationForm.passwordValidator,
                     fixIcon: IconButton(
                       icon: Icon(
-                        _isObscured
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                        _isObscured ? Icons.visibility_off : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() {
@@ -277,14 +204,20 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                             ),
                             const SizedBox(height: 30),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 50),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 50,
+                              ),
                               child: Card(
                                 color: Colors.black,
                                 elevation: 2,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 18,
+                                  ),
                                   child: form,
                                 ),
                               ),
@@ -303,7 +236,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 24),
+                    horizontal: 16,
+                    vertical: 24,
+                  ),
                   child: Column(
                     children: [
                       const LogoImageWidget(),
@@ -317,9 +252,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       Card(
                         color: Colors.black,
                         elevation: 2,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 18,
+                          ),
                           child: form,
                         ),
                       ),

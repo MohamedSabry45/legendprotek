@@ -6,11 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/routes/routes_name.dart';
-import 'package:reservation_workshop/core/components/dialogs/prograss_delay_dialog.dart';
 import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/core/functions/validationform.dart';
 
-import 'package:reservation_workshop/modules/auth/presentation/cubits/forgot_password_cubit/forgot_password_cubit.dart';
 import 'package:reservation_workshop/modules/auth/presentation/cubits/forgot_password_cubit/forgot_password_cubit.dart'
     as forgot_password_cubit;
 
@@ -71,10 +69,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final cubit = forgot_password_cubit.ForgotPasswordCubit.get(context);
 
-    return BlocListener<forgot_password_cubit.ForgotPasswordCubit, forgot_password_cubit.ForgotPasswordState>(
+    return BlocListener<
+      forgot_password_cubit.ForgotPasswordCubit,
+      forgot_password_cubit.ForgotPasswordState
+    >(
       listener: (context, state) {
         // Close dialog if state is not loading but dialog is shown
-        if (!(state is forgot_password_cubit.ForgotPasswordLoading) && _dialogShown) {
+        if (!(state is forgot_password_cubit.ForgotPasswordLoading) &&
+            _dialogShown) {
           _stopBlockingDialog();
         }
 
@@ -83,6 +85,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             Navigator.of(context, rootNavigator: true).maybePop();
             _dialogShown = false;
           }
+          Toasters.success('auth.otp_sent'.tr());
           Navigator.pushNamed(
             context,
             RoutesName.resetPasswordScreen,
@@ -96,7 +99,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             Navigator.of(context, rootNavigator: true).maybePop();
             _dialogShown = false;
           }
-          Toasters.show(state.message);
+          Toasters.errorFrom(state.message, fallbackKey: 'auth.forgot_failed');
           return;
         }
       },
@@ -115,27 +118,34 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.black,
-                Color(0xFF050505),
-                Color(0xFF0A0A0A),
-              ],
+              colors: [Colors.black, Color(0xFF050505), Color(0xFF0A0A0A)],
             ),
           ),
           child: SafeArea(
             child: SingleChildScrollView(
               child: SizedBox(
-                height: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - kToolbarHeight,
+                height:
+                    MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    kToolbarHeight,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Card(
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 18,
+                          ),
                           child: Form(
                             key: formKey,
                             child: Column(
@@ -175,7 +185,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 Container(
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF050505),
-                                    border: Border.all(color: const Color(0xFF0A0A0A), width: 2),
+                                    border: Border.all(
+                                      color: const Color(0xFF0A0A0A),
+                                      width: 2,
+                                    ),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: TextFormField(
@@ -196,7 +209,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       filled: true,
                                       fillColor: const Color(0xFF050505),
                                       border: InputBorder.none,
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 16,
+                                          ),
                                     ),
                                     validator: ValidationForm.nameValidator,
                                   ),
@@ -209,7 +226,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   child: ElevatedButton(
                                     onPressed: () {
                                       if (formKey.currentState!.validate()) {
-                                        cubit.forgotPassword(mobile: _mobileController.text);
+                                        cubit.forgotPassword(
+                                          mobile: _mobileController.text,
+                                        );
                                       }
                                     },
                                     style: ElevatedButton.styleFrom(

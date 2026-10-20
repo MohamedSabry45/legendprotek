@@ -39,11 +39,13 @@ class CarSelectionCubit extends Cubit<CarSelectionState> {
   CarSelectionCubit() : super(const CarSelectionState());
 
   Future<void> loadSelectedCar() async {
+    if (isClosed) return;
     emit(state.copyWith(isLoading: true));
     try {
       final carId = await CacheHelper.getDataAsync<int>(key: PrefKeys.kSelectedCarId);
       final carLabel = await CacheHelper.getDataAsync<String>(key: PrefKeys.kSelectedCarLabel);
       final carLogo = await CacheHelper.getDataAsync<String>(key: PrefKeys.kSelectedCarLogo);
+      if (isClosed) return;
       emit(state.copyWith(
         selectedCarId: carId,
         selectedCarLabel: carLabel,
@@ -51,6 +53,7 @@ class CarSelectionCubit extends Cubit<CarSelectionState> {
         isLoading: false,
       ));
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
@@ -63,6 +66,7 @@ class CarSelectionCubit extends Cubit<CarSelectionState> {
     await CacheHelper.saveData(key: PrefKeys.kSelectedCarLabel, value: label);
     await CacheHelper.saveData(key: PrefKeys.kSelectedCarLogo, value: logo);
     
+    if (isClosed) return;
     emit(state.copyWith(
       selectedCarId: car.id,
       selectedCarLabel: label,

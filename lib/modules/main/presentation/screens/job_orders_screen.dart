@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/routes/routes_name.dart';
-import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/core/network/local/cache_helper.dart';
 import 'package:reservation_workshop/core/utils/strings/prefkeys.dart';
 import 'package:reservation_workshop/modules/main/presentation/widgets/job_order_card.dart';
 import 'package:reservation_workshop/modules/job_orders/presentation/cubits/job_orders_cubit/job_orders_cubit.dart';
 import 'package:reservation_workshop/modules/job_orders/presentation/cubits/job_orders_cubit/job_orders_state.dart';
 import 'package:reservation_workshop/modules/job_order_details/presentation/screens/job_order_details_args.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/modules/job_order_details/presentation/screens/job_order_details_phone_prompt.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_cubit.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_state.dart';
@@ -18,7 +18,9 @@ class JobOrdersScreen extends StatelessWidget {
   const JobOrdersScreen({super.key});
 
   Future<String?> _ensurePhoneLast4(BuildContext context) async {
-    final cached = CacheHelper.getData<String>(key: PrefKeys.kJobOrderPhoneLast4);
+    final cached = CacheHelper.getData<String>(
+      key: PrefKeys.kJobOrderPhoneLast4,
+    );
     if (cached != null && cached.trim().length == 4) {
       return cached.trim();
     }
@@ -38,13 +40,16 @@ class JobOrdersScreen extends StatelessWidget {
         final digits = mobile
             .replaceAll(RegExp(r'[^0-9\u0660-\u0669]'), '')
             .replaceAllMapped(RegExp(r'[\u0660-\u0669]'), (m) {
-          // Convert Arabic-Indic numerals to ASCII 0-9
-          final code = m[0]!.codeUnitAt(0) - 0x0660;
-          return code.toString();
-        });
+              // Convert Arabic-Indic numerals to ASCII 0-9
+              final code = m[0]!.codeUnitAt(0) - 0x0660;
+              return code.toString();
+            });
         if (digits.length >= 4) {
           final last4 = digits.substring(digits.length - 4);
-          await CacheHelper.saveData(key: PrefKeys.kJobOrderPhoneLast4, value: last4);
+          await CacheHelper.saveData(
+            key: PrefKeys.kJobOrderPhoneLast4,
+            value: last4,
+          );
           return last4;
         }
       }
@@ -76,9 +81,12 @@ class JobOrdersScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
-        title: const Text(
-          'أوامر العمل',
-          style: TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.w900),
+        title: Text(
+          'job_order.list_title'.tr(),
+          style: const TextStyle(
+            color: Color(0xFFD4AF37),
+            fontWeight: FontWeight.w900,
+          ),
         ),
         foregroundColor: const Color(0xFFD4AF37),
         iconTheme: const IconThemeData(color: Color(0xFFD4AF37)),
@@ -95,7 +103,7 @@ class JobOrdersScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    state.message,
+                    Toasters.displayMessage(state.message),
                     textAlign: TextAlign.center,
                     style: textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
@@ -113,9 +121,12 @@ class JobOrdersScreen extends StatelessWidget {
                     jobOrderId: o.id,
                     plateNumber: o.plateNumber,
                     jobSheetNo: o.jobSheetNo,
-                    status: o.workshop == null || o.workshop!.trim().isEmpty ? 'معلق' : o.workshop!,
+                    status: o.workshop == null || o.workshop!.trim().isEmpty
+                        ? 'job_order.pending'.tr()
+                        : o.workshop!,
                     branch: o.location,
-                    carType: '${o.brand} ${o.model} ${o.manufacturingYear}'.trim(),
+                    carType: '${o.brand} ${o.model} ${o.manufacturingYear}'
+                        .trim(),
                     bookingDate: null,
                   ),
                 )
@@ -124,7 +135,7 @@ class JobOrdersScreen extends StatelessWidget {
             if (items.isEmpty) {
               return Center(
                 child: Text(
-                  'لا توجد أوامر عمل',
+                  'job_order.empty'.tr(),
                   style: textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.black54,

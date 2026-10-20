@@ -17,7 +17,8 @@ class BusinessLocationsScreen extends StatefulWidget {
   const BusinessLocationsScreen({super.key});
 
   @override
-  State<BusinessLocationsScreen> createState() => _BusinessLocationsScreenState();
+  State<BusinessLocationsScreen> createState() =>
+      _BusinessLocationsScreenState();
 }
 
 class _BusinessLocationsScreenState extends State<BusinessLocationsScreen> {
@@ -35,15 +36,17 @@ class _BusinessLocationsScreenState extends State<BusinessLocationsScreen> {
     final lng = location.longitude;
 
     if (lat == null || lng == null) {
-      Toasters.show('locations.no_map_for_branch'.tr());
+      Toasters.errorKey('locations.no_map_for_branch');
       return;
     }
 
-    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+    final uri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+    );
 
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok) {
-      Toasters.show('locations.open_map_failed'.tr());
+      Toasters.errorKey('locations.open_map_failed');
     }
   }
 
@@ -75,27 +78,40 @@ class _BusinessLocationsScreenState extends State<BusinessLocationsScreen> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: BlocBuilder<BusinessLocationsCubit, BusinessLocationsState>(
-                          builder: (context, state) {
-                            final count = state is BusinessLocationsSuccess ? state.locations.length : 0;
-                            return Text(
-                              'locations.nearest_branch'.tr(args: [count.toString()]),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: (textTheme.bodySmall ?? const TextStyle()).copyWith(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white70,
-                              ),
-                            );
-                          },
-                        ),
+                        child:
+                            BlocBuilder<
+                              BusinessLocationsCubit,
+                              BusinessLocationsState
+                            >(
+                              builder: (context, state) {
+                                final count = state is BusinessLocationsSuccess
+                                    ? state.locations.length
+                                    : 0;
+                                return Text(
+                                  'locations.nearest_branch'.tr(
+                                    args: [count.toString()],
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style:
+                                      (textTheme.bodySmall ?? const TextStyle())
+                                          .copyWith(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white70,
+                                          ),
+                                );
+                              },
+                            ),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       _MapButton(
                         onTap: () {
-                          final state = context.read<BusinessLocationsCubit>().state;
-                          if (state is BusinessLocationsSuccess && state.locations.isNotEmpty) {
+                          final state = context
+                              .read<BusinessLocationsCubit>()
+                              .state;
+                          if (state is BusinessLocationsSuccess &&
+                              state.locations.isNotEmpty) {
                             _openMap(state.locations.first);
                           }
                         },
@@ -104,67 +120,82 @@ class _BusinessLocationsScreenState extends State<BusinessLocationsScreen> {
                   ),
                 ),
                 Expanded(
-                  child: BlocConsumer<BusinessLocationsCubit, BusinessLocationsState>(
-                    listener: (context, state) {
-                      if (state is BusinessLocationsError) {
-                        Toasters.show(state.message);
-                      }
-                    },
-                    builder: (context, state) {
-                      if (state is BusinessLocationsLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
+                  child:
+                      BlocConsumer<
+                        BusinessLocationsCubit,
+                        BusinessLocationsState
+                      >(
+                        listener: (context, state) {
+                          if (state is BusinessLocationsError) {
+                            Toasters.errorFrom(state.message);
+                          }
+                        },
+                        builder: (context, state) {
+                          if (state is BusinessLocationsLoading) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
 
-                      if (state is BusinessLocationsError) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppSpacing.xxl),
-                            child: Text(
-                              'locations.load_failed'.tr(),
-                              textAlign: TextAlign.center,
-                              style: (textTheme.bodyMedium ?? const TextStyle()).copyWith(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.grey7,
+                          if (state is BusinessLocationsError) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(AppSpacing.xxl),
+                                child: Text(
+                                  'locations.load_failed'.tr(),
+                                  textAlign: TextAlign.center,
+                                  style:
+                                      (textTheme.bodyMedium ??
+                                              const TextStyle())
+                                          .copyWith(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.grey7,
+                                          ),
+                                ),
                               ),
-                            ),
-                          ),
-                        );
-                      }
+                            );
+                          }
 
-                      final items = state is BusinessLocationsSuccess ? state.locations : const <BusinessLocation>[];
+                          final items = state is BusinessLocationsSuccess
+                              ? state.locations
+                              : const <BusinessLocation>[];
 
-                      if (items.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppSpacing.xxl),
-                            child: Text(
-                              'locations.empty'.tr(),
-                              textAlign: TextAlign.center,
-                              style: (textTheme.bodyMedium ?? const TextStyle()).copyWith(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.grey7,
+                          if (items.isEmpty) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(AppSpacing.xxl),
+                                child: Text(
+                                  'locations.empty'.tr(),
+                                  textAlign: TextAlign.center,
+                                  style:
+                                      (textTheme.bodyMedium ??
+                                              const TextStyle())
+                                          .copyWith(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.grey7,
+                                          ),
+                                ),
                               ),
-                            ),
-                          ),
-                        );
-                      }
+                            );
+                          }
 
-                      return ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                        itemCount: items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return _LocationCard(
-                            item: item,
-                            onTap: () => _openMap(item),
+                          return ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                            itemCount: items.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: AppSpacing.md),
+                            itemBuilder: (context, index) {
+                              final item = items[index];
+                              return _LocationCard(
+                                item: item,
+                                onTap: () => _openMap(item),
+                              );
+                            },
                           );
                         },
-                      );
-                    },
-                  ),
+                      ),
                 ),
               ],
             ),
@@ -251,7 +282,11 @@ class _LocationCard extends StatelessWidget {
                   color: AppColors.brandPrimarySoft,
                   borderRadius: BorderRadius.all(Radius.circular(14)),
                 ),
-                child: const Icon(Icons.store_mall_directory_outlined, color: AppColors.brandPrimary, size: 28),
+                child: const Icon(
+                  Icons.store_mall_directory_outlined,
+                  color: AppColors.brandPrimary,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
@@ -265,28 +300,39 @@ class _LocationCard extends StatelessWidget {
                             item.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: (textTheme.titleMedium ?? const TextStyle()).copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              height: 1.1,
-                            ),
+                            style: (textTheme.titleMedium ?? const TextStyle())
+                                .copyWith(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  height: 1.1,
+                                ),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: hasMap ? const Color(0xFF050505) : const Color(0xFF0A0A0A),
+                            color: hasMap
+                                ? const Color(0xFF050505)
+                                : const Color(0xFF0A0A0A),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
-                            hasMap ? 'locations.map_available'.tr() : 'locations.no_location'.tr(),
-                            style: (textTheme.bodySmall ?? const TextStyle()).copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: hasMap ? const Color(0xFF0A0A0A) : Colors.white70,
-                            ),
+                            hasMap
+                                ? 'locations.map_available'.tr()
+                                : 'locations.no_location'.tr(),
+                            style: (textTheme.bodySmall ?? const TextStyle())
+                                .copyWith(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: hasMap
+                                      ? const Color(0xFF0A0A0A)
+                                      : Colors.white70,
+                                ),
                           ),
                         ),
                       ],
@@ -294,19 +340,24 @@ class _LocationCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.md),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 16, color: Colors.black54),
+                        const Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: Colors.black54,
+                        ),
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Text(
                             _subtitle(),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: (textTheme.bodyMedium ?? const TextStyle()).copyWith(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.grey7,
-                              height: 1.2,
-                            ),
+                            style: (textTheme.bodyMedium ?? const TextStyle())
+                                .copyWith(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.grey7,
+                                  height: 1.2,
+                                ),
                           ),
                         ),
                       ],
@@ -318,12 +369,13 @@ class _LocationCard extends StatelessWidget {
                         const SizedBox(width: AppSpacing.sm),
                         Text(
                           item.mobile.trim().isEmpty ? '-' : item.mobile.trim(),
-                          style: (textTheme.bodyMedium ?? const TextStyle()).copyWith(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white70,
-                            height: 1.1,
-                          ),
+                          style: (textTheme.bodyMedium ?? const TextStyle())
+                              .copyWith(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white70,
+                                height: 1.1,
+                              ),
                         ),
                       ],
                     ),
@@ -331,7 +383,11 @@ class _LocationCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.white70),
+              const Icon(
+                Icons.arrow_back_ios_new,
+                size: 16,
+                color: Colors.white70,
+              ),
             ],
           ),
         ),

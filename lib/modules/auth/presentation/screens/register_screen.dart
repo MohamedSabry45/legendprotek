@@ -51,7 +51,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final cubit = RegisterCubit.get(context);
@@ -65,9 +64,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         if (state is RegisterSuccess) {
           Navigator.of(context, rootNavigator: true).maybePop();
+          Toasters.success('auth.register_success'.tr());
           Navigator.pushNamedAndRemoveUntil(
             context,
-            RoutesName.chooseCarScreen,
+            RoutesName.homeScreen,
             (route) => false,
           );
           return;
@@ -75,7 +75,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         if (state is RegisterError) {
           Navigator.of(context, rootNavigator: true).maybePop();
-          Toasters.show(state.message);
+          Toasters.errorFrom(
+            state.message,
+            fallbackKey: 'auth.register_failed',
+          );
           return;
         }
       },
@@ -94,11 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.black,
-                Color(0xFF050505),
-                Color(0xFF0A0A0A),
-              ],
+              colors: [Colors.black, Color(0xFF050505), Color(0xFF0A0A0A)],
             ),
           ),
           child: SafeArea(
@@ -106,9 +105,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Card(
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
+                  ),
                   child: Form(
                     key: formKey,
                     child: Column(
@@ -125,7 +129,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFF0A0A0A),
-                            border: Border.all(color: const Color(0xFF0A0A0A), width: 2),
+                            border: Border.all(
+                              color: const Color(0xFF0A0A0A),
+                              width: 2,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: TextFormField(
@@ -144,7 +151,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               filled: true,
                               fillColor: const Color(0xFF0A0A0A),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                             ),
                             validator: ValidationForm.nameValidator,
                           ),
@@ -154,7 +164,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFF0A0A0A),
-                            border: Border.all(color: const Color(0xFF0A0A0A), width: 2),
+                            border: Border.all(
+                              color: const Color(0xFF0A0A0A),
+                              width: 2,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: TextFormField(
@@ -175,7 +188,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               filled: true,
                               fillColor: const Color(0xFF0A0A0A),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                             ),
                             validator: ValidationForm.nameValidator,
                           ),
@@ -185,7 +201,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFF0A0A0A),
-                            border: Border.all(color: const Color(0xFF0A0A0A), width: 2),
+                            border: Border.all(
+                              color: const Color(0xFF0A0A0A),
+                              width: 2,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: TextFormField(
@@ -206,10 +225,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               filled: true,
                               fillColor: const Color(0xFF050505),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _isObscured ? Icons.visibility_off : Icons.visibility,
+                                  _isObscured
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                   color: Colors.white70,
                                 ),
                                 onPressed: () {

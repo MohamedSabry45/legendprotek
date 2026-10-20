@@ -19,12 +19,15 @@ class MaintenanceNotificationsCubit extends Cubit<MaintenanceNotificationsState>
     emit(const MaintenanceNotificationsLoading());
     try {
       if (await _isGuestMode()) {
+        if (isClosed) return;
         emit(MaintenanceNotificationsSuccess([]));
         return;
       }
       final items = await _remote.getMaintenanceNotifications(status: status);
+      if (isClosed) return;
       emit(MaintenanceNotificationsSuccess(items));
     } catch (e) {
+      if (isClosed) return;
       emit(MaintenanceNotificationsError(e.toString()));
     }
   }
@@ -36,8 +39,10 @@ class MaintenanceNotificationsCubit extends Cubit<MaintenanceNotificationsState>
 
     try {
       await _remote.markRead(notificationIds: notificationIds);
+      if (isClosed) return;
       await refresh();
     } catch (e) {
+      if (isClosed) return;
       emit(MaintenanceNotificationsError(e.toString()));
     }
   }
@@ -45,8 +50,10 @@ class MaintenanceNotificationsCubit extends Cubit<MaintenanceNotificationsState>
   Future<void> markAllRead() async {
     try {
       await _remote.markAllRead();
+      if (isClosed) return;
       await refresh();
     } catch (e) {
+      if (isClosed) return;
       emit(MaintenanceNotificationsError(e.toString()));
     }
   }

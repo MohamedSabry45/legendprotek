@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
 
-import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/config/style/app_spacing.dart';
 import 'package:reservation_workshop/core/widgets/app_card.dart';
 
@@ -16,6 +15,14 @@ class InvoiceCardWidget extends StatelessWidget {
     required this.invoice,
     required this.onTap,
   });
+
+  static String localizedStatus(String raw) {
+    final v = raw.trim();
+    if (v.isEmpty) return '-';
+    final key = 'invoices.status_${v.toLowerCase().replaceAll(' ', '_')}';
+    final tr = key.tr();
+    return tr == key ? v : tr;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +45,11 @@ class InvoiceCardWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      invoice.invoiceNo.trim().isEmpty ? 'Invoice #${invoice.id}' : invoice.invoiceNo,
+                      invoice.invoiceNo.trim().isEmpty
+                          ? 'invoices.number_fallback'.tr(
+                              args: [invoice.id.toString()],
+                            )
+                          : invoice.invoiceNo,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.titleSmall?.copyWith(
@@ -54,7 +65,7 @@ class InvoiceCardWidget extends StatelessWidget {
                       borderRadius: BorderRadius.zero,
                     ),
                     child: Text(
-                      invoice.paymentStatus.trim().isEmpty ? '-' : invoice.paymentStatus,
+                      localizedStatus(invoice.paymentStatus),
                       style: const TextStyle(
                         color: const Color(0xFFD4AF37),
                         fontWeight: FontWeight.w800,
@@ -77,7 +88,7 @@ class InvoiceCardWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      invoice.status.trim().isEmpty ? '-' : invoice.status,
+                      localizedStatus(invoice.status),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.bodyMedium?.copyWith(

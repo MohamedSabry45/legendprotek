@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/routes/routes_name.dart';
-import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/core/network/local/cache_helper.dart';
 import 'package:reservation_workshop/core/utils/strings/prefkeys.dart';
 import 'package:reservation_workshop/core/widgets/login_required_view.dart';
@@ -15,6 +14,7 @@ import 'package:reservation_workshop/modules/job_estimators/presentation/cubits/
 import 'package:reservation_workshop/modules/job_estimators/presentation/screens/job_estimator_details_args.dart';
 import 'package:reservation_workshop/modules/job_estimators/presentation/widgets/job_estimator_card.dart';
 import 'package:reservation_workshop/modules/branch/presentation/cubits/branch_cubit/branch_cubit.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/modules/service/presentation/cubits/service_cubit/service_cubit.dart';
 import 'package:reservation_workshop/modules/job_estimators/presentation/cubits/create_job_estimator_cubit/create_job_estimator_cubit.dart';
 import 'package:reservation_workshop/modules/job_estimators/presentation/widgets/create_job_estimator_dialog.dart';
@@ -97,7 +97,7 @@ class _EstimatorsTabViewState extends State<EstimatorsTabView> {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    state.message,
+                    Toasters.displayMessage(state.message),
                     textAlign: TextAlign.center,
                     style: textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,

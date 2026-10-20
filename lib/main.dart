@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -51,6 +52,7 @@ import 'package:reservation_workshop/modules/job_orders/presentation/cubits/job_
 import 'package:reservation_workshop/modules/job_order_details/presentation/cubits/job_order_details_cubit/job_order_details_cubit.dart';
 import 'package:reservation_workshop/modules/job_order_details/presentation/screens/job_order_details_screen.dart';
 import 'package:reservation_workshop/modules/job_estimators/presentation/screens/job_estimator_details_screen.dart';
+import 'package:reservation_workshop/modules/job_estimators/presentation/cubits/job_estimator_details_cubit.dart';
 import 'package:reservation_workshop/modules/bookings/presentation/cubits/add_booking_cubit/add_booking_cubit.dart';
 import 'package:reservation_workshop/modules/bookings/presentation/cubits/bookings_cubit/bookings_cubit.dart';
 import 'package:reservation_workshop/modules/job_estimators/presentation/cubits/job_estimators_cubit.dart';
@@ -69,13 +71,18 @@ import 'package:reservation_workshop/modules/menu/presentation/screens/menu_acco
 import 'package:reservation_workshop/modules/menu/presentation/screens/menu_change_language_screen.dart';
 import 'package:reservation_workshop/modules/menu/presentation/screens/menu_contact_screen.dart';
 import 'package:reservation_workshop/modules/menu/presentation/screens/menu_logout_screen.dart';
+import 'package:reservation_workshop/modules/notifications/data/datasources/fcm_token_remote_datasource.dart';
 import 'package:reservation_workshop/modules/notifications/presentation/cubit/maintenance_notifications_cubit.dart';
+import 'package:reservation_workshop/modules/notifications/presentation/cubit/user_notifications_badge_cubit.dart';
+import 'package:reservation_workshop/modules/notifications/presentation/cubit/user_notifications_cubit.dart';
 import 'package:reservation_workshop/modules/notifications/presentation/screens/maintenance_notifications_screen.dart';
+import 'package:reservation_workshop/modules/notifications/presentation/screens/user_notifications_screen.dart';
 import 'package:reservation_workshop/modules/loyalty_points/presentation/cubit/loyalty_points_cubit.dart';
 import 'package:reservation_workshop/modules/loyalty_points/presentation/screens/loyalty_points_screen.dart';
 import 'package:reservation_workshop/modules/startup/presentation/first_language_screen.dart';
 import 'package:reservation_workshop/modules/invoices/presentation/screens/invoice_details_screen.dart';
 
+final appNavigatorKey = GlobalKey<NavigatorState>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -88,7 +95,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   } on FirebaseException catch (e) {
     final code = e.code ?? '';
     final msg = (e.message ?? '').toLowerCase();
-    if (!(code.contains('duplicate') || msg.contains('already exists'))) rethrow;
+    if (!(code.contains('duplicate') || msg.contains('already exists')))
+      rethrow;
   }
   debugPrint(
     '📩 FCM (background) messageId=${message.messageId} '
@@ -98,24 +106,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
 }
 
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    }
-  } on FirebaseException catch (e) {
-    final code = e.code ?? '';
-    final msg = (e.message ?? '').toLowerCase();
-    if (!(code.contains('duplicate') || msg.contains('already exists'))) rethrow;
-  }
-
+Future<void> initNotifications() async {
   // Initialize Firebase Messaging (skip on web if it fails)
   try {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    NotificationService.navigatorKey = appNavigatorKey;
     await NotificationService.ensureInitialized();
 
     final settings = await FirebaseMessaging.instance.requestPermission(
@@ -123,13 +119,17 @@ Future<void> main() async {
       badge: true,
       sound: true,
     );
-    debugPrint('🔔 Notification permission status => ${settings.authorizationStatus}');
+    debugPrint(
+      '🔔 Notification permission status => ${settings.authorizationStatus}',
+    );
 
     final fcmToken = await FirebaseMessaging.instance.getToken();
     debugPrint('✅ CURRENT FCM TOKEN => $fcmToken');
+    await FcmTokenRemoteDataSource.registerCurrentToken(fcmToken: fcmToken);
 
     FirebaseMessaging.instance.onTokenRefresh.listen((token) {
       debugPrint('🔄 FCM TOKEN REFRESHED => $token');
+      FcmTokenRemoteDataSource.registerCurrentToken(fcmToken: token);
     });
 
     try {
@@ -147,6 +147,7 @@ Future<void> main() async {
         'body=${initialMessage.notification?.body} '
         'data=${initialMessage.data}',
       );
+      NotificationService.handleNotificationData(initialMessage.data);
     }
 
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
@@ -156,6 +157,7 @@ Future<void> main() async {
         'body=${message.notification?.body} '
         'data=${message.data}',
       );
+      NotificationService.handleNotificationData(message.data);
     });
 
     FirebaseMessaging.onMessage.listen((message) async {
@@ -170,18 +172,44 @@ Future<void> main() async {
       }
     });
   } catch (e) {
-    debugPrint('⚠️ Firebase Messaging initialization failed (may not be available on web): $e');
+    debugPrint(
+      '⚠️ Firebase Messaging initialization failed (may not be available on web): $e',
+    );
+  }
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } on FirebaseException catch (e) {
+    final code = e.code ?? '';
+    final msg = (e.message ?? '').toLowerCase();
+    if (!(code.contains('duplicate') || msg.contains('already exists')))
+      rethrow;
   }
 
   await EasyLocalization.ensureInitialized();
   await CacheHelper.init();
 
-  final savedCode = await CacheHelper.getDataAsync<String>(key: PrefKeys.kLocaleCode);
+  unawaited(initNotifications());
+
+  final savedCode = await CacheHelper.getDataAsync<String>(
+    key: PrefKeys.kLocaleCode,
+  );
   final normalized = (savedCode ?? '').trim().toLowerCase();
-  final initialLocale = normalized == 'ar' ? const Locale('ar') : const Locale('en');
+  final initialLocale = normalized == 'ar'
+      ? const Locale('ar')
+      : const Locale('en');
 
   // Check if user is logged in
-  final String? token = await CacheHelper.getDataAsync<String>(key: PrefKeys.kAccessToken);
+  final String? token = await CacheHelper.getDataAsync<String>(
+    key: PrefKeys.kAccessToken,
+  );
   final bool isLoggedIn = token != null && token.trim().isNotEmpty;
 
   runApp(
@@ -209,11 +237,20 @@ class MyApp extends StatelessWidget {
         BlocProvider<AppCubit>(create: (_) => AppCubit()),
         BlocProvider<ShiftCubit>(create: (_) => ShiftCubit()),
         BlocProvider<BlogCubit>(create: (_) => BlogCubit()),
-        BlocProvider<BusinessLocationsCubit>(create: (_) => BusinessLocationsCubit()),
+        BlocProvider<BusinessLocationsCubit>(
+          create: (_) => BusinessLocationsCubit(),
+        ),
         BlocProvider<CustomerInfoCubit>(create: (_) => CustomerInfoCubit()),
         BlocProvider<DeleteAccountCubit>(create: (_) => DeleteAccountCubit()),
+        BlocProvider<UserNotificationsCubit>(
+          create: (_) => UserNotificationsCubit(),
+        ),
+        BlocProvider<UserNotificationsBadgeCubit>(
+          create: (_) => UserNotificationsBadgeCubit()..start(),
+        ),
       ],
       child: MaterialApp(
+        navigatorKey: appNavigatorKey,
         scaffoldMessengerKey: Toasters.messengerKey,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.dark(locale: context.locale),
@@ -232,141 +269,202 @@ class MyApp extends StatelessWidget {
             ),
           );
         },
-        home: isLoggedIn ? const FullscreenSplashScreen() : const GuestSplashScreen(),
+        home: isLoggedIn
+            ? const FullscreenSplashScreen()
+            : const GuestSplashScreen(),
         routes: {
           '/fullscreen_splash': (_) => const FullscreenSplashScreen(),
           '/startup': (_) => const StartupDeciderScreen(),
           RoutesName.guestSplashScreen: (_) => const GuestSplashScreen(),
           RoutesName.firstLanguageScreen: (_) => const FirstLanguageScreen(),
           RoutesName.enterMobileScreen: (_) => const EnterMobileScreen(),
-          RoutesName.socialUpdateMobileScreen: (_) => const SocialUpdateMobileScreen(),
+          RoutesName.socialUpdateMobileScreen: (_) =>
+              const SocialUpdateMobileScreen(),
           RoutesName.socialPhoneOtpScreen: (_) => const SocialPhoneOtpScreen(),
-          RoutesName.forgotPasswordScreen: (_) => BlocProvider<ForgotPasswordCubit>(
+          RoutesName.forgotPasswordScreen: (_) =>
+              BlocProvider<ForgotPasswordCubit>(
                 create: (_) => ForgotPasswordCubit(),
                 child: const ForgotPasswordScreen(),
               ),
-          RoutesName.resetPasswordScreen: (_) => BlocProvider<ResetPasswordCubit>(
+          RoutesName.resetPasswordScreen: (_) =>
+              BlocProvider<ResetPasswordCubit>(
                 create: (_) => ResetPasswordCubit(),
                 child: const ResetPasswordScreen(),
               ),
-          RoutesName.otpVerificationScreen: (_) => const OtpVerificationScreen(),
+          RoutesName.otpVerificationScreen: (_) =>
+              const OtpVerificationScreen(),
           // RoutesName.socialOtpVerificationScreen: (_) => const SocialOtpVerificationScreen(), // No longer needed - OTP flow removed
-          RoutesName.completeProfileScreen: (_) => const CompleteProfileScreen(),
+          RoutesName.completeProfileScreen: (_) =>
+              const CompleteProfileScreen(),
           RoutesName.loginScreen: (_) => BlocProvider<LoginCubit>(
-                create: (_) => LoginCubit(),
-                child: const LoginScreen(),
-              ),
+            create: (_) => LoginCubit(),
+            child: const LoginScreen(),
+          ),
           RoutesName.registerScreen: (_) => BlocProvider<RegisterCubit>(
-                create: (_) => RegisterCubit(),
-                child: const RegisterScreen(),
-              ),
+            create: (_) => RegisterCubit(),
+            child: const RegisterScreen(),
+          ),
           RoutesName.chooseCarScreen: (_) => BlocProvider<CustomerInfoCubit>(
-                create: (_) => CustomerInfoCubit(),
-                child: const ChooseCarScreen(),
-              ),
+            create: (_) => CustomerInfoCubit(),
+            child: const ChooseCarScreen(),
+          ),
           RoutesName.addCarScreen: (_) => const AddCarScreen(),
           RoutesName.homeScreen: (_) => MultiBlocProvider(
-                providers: [
-                  BlocProvider<CustomerInfoCubit>(create: (_) => CustomerInfoCubit()),
-                  BlocProvider<BookingsCubit>(create: (_) => BookingsCubit()),
-                  BlocProvider<BlogCubit>(create: (_) => BlogCubit()..loadFirst(localeCode: context.locale.languageCode)),
-                ],
-                child: const HomeScreen(),
+            providers: [
+              BlocProvider<CustomerInfoCubit>(
+                create: (_) => CustomerInfoCubit(),
               ),
+              BlocProvider<BookingsCubit>(create: (_) => BookingsCubit()),
+              BlocProvider<BlogCubit>(
+                create: (_) =>
+                    BlogCubit()
+                      ..loadFirst(localeCode: context.locale.languageCode),
+              ),
+            ],
+            child: const HomeScreen(),
+          ),
           RoutesName.sparePartsScreen: (_) => MultiBlocProvider(
-                providers: [
-                  BlocProvider<TaxonomyCubit>(create: (_) => TaxonomyCubit()),
-                  BlocProvider<CustomerInfoCubit>(create: (_) => CustomerInfoCubit()),
-                  BlocProvider<CartCubit>(create: (_) => CartCubit()),
-                ],
-                child: const SparePartsScreen(),
+            providers: [
+              BlocProvider<TaxonomyCubit>(create: (_) => TaxonomyCubit()),
+              BlocProvider<CustomerInfoCubit>(
+                create: (_) => CustomerInfoCubit(),
               ),
+              BlocProvider<CartCubit>(create: (_) => CartCubit()),
+            ],
+            child: const SparePartsScreen(),
+          ),
           RoutesName.contactCarsScreen: (_) => const ContactCarsScreen(),
           RoutesName.buyCarScreen: (_) => BlocProvider<VehiclesCubit>(
-                create: (_) => VehiclesCubit(),
-                child: const BuyCarScreen(),
-              ),
+            create: (_) => VehiclesCubit(),
+            child: const BuyCarScreen(),
+          ),
           RoutesName.invoiceDetailsScreen: (_) => const InvoiceDetailsScreen(),
           RoutesName.mainScreen: (_) => MultiBlocProvider(
-                providers: [
-                  BlocProvider<CustomerInfoCubit>(create: (_) => CustomerInfoCubit()),
-                  BlocProvider<BranchCubit>(create: (_) => BranchCubit()),
-                  BlocProvider<ServiceCubit>(create: (_) => ServiceCubit()),
-                  BlocProvider<JobOrdersCubit>(create: (_) => JobOrdersCubit()),
-                  BlocProvider<JobEstimatorsCubit>(create: (_) => JobEstimatorsCubit()),
-                  BlocProvider<MaintenanceNotificationsCubit>(create: (_) => MaintenanceNotificationsCubit()),
-                ],
-                child: const RequestsTabsScreen(),
+            providers: [
+              BlocProvider<CustomerInfoCubit>(
+                create: (_) => CustomerInfoCubit(),
               ),
+              BlocProvider<BranchCubit>(create: (_) => BranchCubit()),
+              BlocProvider<ServiceCubit>(create: (_) => ServiceCubit()),
+              BlocProvider<JobOrdersCubit>(create: (_) => JobOrdersCubit()),
+              BlocProvider<JobEstimatorsCubit>(
+                create: (_) => JobEstimatorsCubit(),
+              ),
+              BlocProvider<MaintenanceNotificationsCubit>(
+                create: (_) => MaintenanceNotificationsCubit(),
+              ),
+            ],
+            child: const RequestsTabsScreen(),
+          ),
           RoutesName.jobOrdersScreen: (_) => BlocProvider<JobOrdersCubit>(
-                create: (_) => JobOrdersCubit(),
-                child: const JobOrdersScreen(),
-              ),
-          RoutesName.jobOrderDetailsScreen: (_) => BlocProvider<JobOrderDetailsCubit>(
+            create: (_) => JobOrdersCubit(),
+            child: const JobOrdersScreen(),
+          ),
+          RoutesName.jobOrderDetailsScreen: (_) =>
+              BlocProvider<JobOrderDetailsCubit>(
                 create: (_) => JobOrderDetailsCubit(),
                 child: const JobOrderDetailsScreen(),
               ),
           RoutesName.informationBookingsScreen: (_) => MultiBlocProvider(
-                providers: [
-                  BlocProvider<BookingsCubit>(create: (_) => BookingsCubit()),
-                  BlocProvider<CustomerInfoCubit>(create: (_) => CustomerInfoCubit()),
-                ],
-                child: const InformationBookingsScreen(),
+            providers: [
+              BlocProvider<BookingsCubit>(create: (_) => BookingsCubit()),
+              BlocProvider<CustomerInfoCubit>(
+                create: (_) => CustomerInfoCubit(),
               ),
+            ],
+            child: const InformationBookingsScreen(),
+          ),
           RoutesName.notificationsScreen: (context) {
-                MaintenanceNotificationsCubit? existing;
-                try {
-                  existing = BlocProvider.of<MaintenanceNotificationsCubit>(context);
-                } catch (_) {
-                  existing = null;
-                }
+            UserNotificationsCubit? existing;
+            try {
+              existing = BlocProvider.of<UserNotificationsCubit>(context);
+            } catch (_) {
+              existing = null;
+            }
 
-                if (existing != null) {
-                  return BlocProvider.value(
-                    value: existing,
-                    child: const MaintenanceNotificationsScreen(),
-                  );
-                }
+            if (existing != null) {
+              return BlocProvider.value(
+                value: existing,
+                child: const UserNotificationsScreen(),
+              );
+            }
 
-                return BlocProvider<MaintenanceNotificationsCubit>(
-                  create: (_) => MaintenanceNotificationsCubit(),
-                  child: const MaintenanceNotificationsScreen(),
-                );
-              },
+            return BlocProvider<UserNotificationsCubit>(
+              create: (_) => UserNotificationsCubit(),
+              child: const UserNotificationsScreen(),
+            );
+          },
+          RoutesName.maintenanceNotificationsScreen: (context) {
+            MaintenanceNotificationsCubit? existing;
+            try {
+              existing = BlocProvider.of<MaintenanceNotificationsCubit>(
+                context,
+              );
+            } catch (_) {
+              existing = null;
+            }
+
+            if (existing != null) {
+              return BlocProvider.value(
+                value: existing,
+                child: const MaintenanceNotificationsScreen(),
+              );
+            }
+
+            return BlocProvider<MaintenanceNotificationsCubit>(
+              create: (_) => MaintenanceNotificationsCubit(),
+              child: const MaintenanceNotificationsScreen(),
+            );
+          },
           RoutesName.bookingDetailsScreen: (_) => BlocProvider<AddBookingCubit>(
-                create: (_) => AddBookingCubit(),
-                child: const BookingDetailsScreen(),
-              ),
+            create: (_) => AddBookingCubit(),
+            child: const BookingDetailsScreen(),
+          ),
           RoutesName.jobEstimatorsScreen: (_) => MultiBlocProvider(
-                providers: [
-                  BlocProvider<CustomerInfoCubit>(create: (_) => CustomerInfoCubit()),
-                  BlocProvider<JobEstimatorsCubit>(create: (_) => JobEstimatorsCubit()),
-                ],
-                child: const JobEstimatorsScreen(),
+            providers: [
+              BlocProvider<CustomerInfoCubit>(
+                create: (_) => CustomerInfoCubit(),
               ),
-          RoutesName.jobEstimatorDetailsScreen: (_) => const JobEstimatorDetailsScreen(),
+              BlocProvider<JobEstimatorsCubit>(
+                create: (_) => JobEstimatorsCubit(),
+              ),
+            ],
+            child: const JobEstimatorsScreen(),
+          ),
+          RoutesName.jobEstimatorDetailsScreen: (_) =>
+              BlocProvider<JobEstimatorDetailsCubit>(
+                create: (_) => JobEstimatorDetailsCubit(),
+                child: const JobEstimatorDetailsScreen(),
+              ),
 
           RoutesName.menuAccountScreen: (context) => BlocProvider.value(
-                value: BlocProvider.of<CustomerInfoCubit>(context),
-                child: BlocProvider.value(
-                  value: BlocProvider.of<DeleteAccountCubit>(context),
-                  child: const MenuAccountScreen(),
-                ),
-              ),
+            value: BlocProvider.of<CustomerInfoCubit>(context),
+            child: BlocProvider.value(
+              value: BlocProvider.of<DeleteAccountCubit>(context),
+              child: const MenuAccountScreen(),
+            ),
+          ),
           RoutesName.menuAboutSkodaScreen: (_) => const MenuAboutSkodaScreen(),
           RoutesName.menuRescueScreen: (_) => MenuRescueScreen(),
           RoutesName.menuContactScreen: (_) => const MenuContactScreen(),
-          RoutesName.menuAboutCenterScreen: (_) => const MenuAboutCenterScreen(),
+          RoutesName.menuAboutCenterScreen: (_) =>
+              const MenuAboutCenterScreen(),
           RoutesName.menuLoyaltyPointsScreen: (_) => MultiBlocProvider(
-                providers: [
-                  BlocProvider<CustomerInfoCubit>(create: (_) => CustomerInfoCubit()),
-                  BlocProvider<LoyaltyPointsCubit>(create: (_) => LoyaltyPointsCubit()),
-                ],
-                child: const LoyaltyPointsScreen(),
+            providers: [
+              BlocProvider<CustomerInfoCubit>(
+                create: (_) => CustomerInfoCubit(),
               ),
-          RoutesName.menuChangeLanguageScreen: (_) => const MenuChangeLanguageScreen(),
+              BlocProvider<LoyaltyPointsCubit>(
+                create: (_) => LoyaltyPointsCubit(),
+              ),
+            ],
+            child: const LoyaltyPointsScreen(),
+          ),
+          RoutesName.menuChangeLanguageScreen: (_) =>
+              const MenuChangeLanguageScreen(),
           RoutesName.menuLogoutScreen: (_) => const MenuLogoutScreen(),
-          RoutesName.businessLocationsScreen: (_) => BlocProvider<BusinessLocationsCubit>(
+          RoutesName.businessLocationsScreen: (_) =>
+              BlocProvider<BusinessLocationsCubit>(
                 create: (_) => BusinessLocationsCubit(),
                 child: const BusinessLocationsScreen(),
               ),

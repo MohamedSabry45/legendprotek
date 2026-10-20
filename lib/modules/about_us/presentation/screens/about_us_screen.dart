@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:ui' as ui;
 
 import 'package:reservation_workshop/core/functions/localization_helper.dart';
-import 'package:reservation_workshop/core/widgets/app_card.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 
 import '../cubit/about_us_cubit.dart';
 import '../cubit/about_us_state.dart';
@@ -22,11 +23,7 @@ class AboutUsScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.black,
-              Color(0xFF050505),
-              Color(0xFF0A0A0A),
-            ],
+            colors: [Colors.black, Color(0xFF050505), Color(0xFF0A0A0A)],
           ),
         ),
         child: SafeArea(
@@ -38,7 +35,10 @@ class AboutUsScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                      ),
                       onPressed: () => Navigator.of(context).maybePop(),
                     ),
                     const SizedBox(width: 8),
@@ -55,7 +55,9 @@ class AboutUsScreen extends StatelessWidget {
               ),
               Expanded(
                 child: Directionality(
-                  textDirection: isLtr(context) ? ui.TextDirection.ltr : ui.TextDirection.rtl,
+                  textDirection: isLtr(context)
+                      ? ui.TextDirection.ltr
+                      : ui.TextDirection.rtl,
                   child: BlocBuilder<AboutUsCubit, AboutUsState>(
                     builder: (context, state) {
                       if (state is AboutUsLoading || state is AboutUsInitial) {
@@ -64,19 +66,24 @@ class AboutUsScreen extends StatelessWidget {
 
                       if (state is AboutUsError) {
                         return _ErrorView(
-                          message: state.message,
+                          message: Toasters.displayMessage(state.message),
                           onRetry: () => context.read<AboutUsCubit>().load(),
                         );
                       }
 
                       if (state is AboutUsSuccess) {
-                return _ContentView(text: state.data.aboutUs);
-              }
+                        return _ContentView(
+                          text: state.data.localized(
+                            context.locale.languageCode,
+                          ),
+                        );
+                      }
 
-                    return const SizedBox.shrink();
-                  },
+                      return const SizedBox.shrink();
+                    },
+                  ),
                 ),
-              ),)
+              ),
             ],
           ),
         ),
@@ -114,7 +121,11 @@ class _ContentView extends StatelessWidget {
                   color: const Color(0xFFD4AF37).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(Icons.info_outline, color: const Color(0xFFD4AF37), size: 26),
+                child: const Icon(
+                  Icons.info_outline,
+                  color: const Color(0xFFD4AF37),
+                  size: 26,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -122,7 +133,12 @@ class _ContentView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      t(context, 'about.about_center_title', ar: 'عن المركز', en: 'About the center'),
+                      t(
+                        context,
+                        'about.about_center_title',
+                        ar: 'عن المركز',
+                        en: 'About the center',
+                      ),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
@@ -137,7 +153,11 @@ class _ContentView extends StatelessWidget {
                         ar: 'معلومات مختصرة عن خبراتنا وخدماتنا ومعايير الجودة لدينا.',
                         en: 'A brief overview of our experience, services, and quality standards.',
                       ),
-                      style: const TextStyle(color: Colors.white70, height: 1.35, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        height: 1.35,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -155,7 +175,14 @@ class _ContentView extends StatelessWidget {
           ),
           child: SelectionArea(
             child: SelectableText(
-              normalized.isEmpty ? t(context, 'about.no_data', ar: 'لا توجد بيانات حالياً', en: 'No data available') : normalized,
+              normalized.isEmpty
+                  ? t(
+                      context,
+                      'about.no_data',
+                      ar: 'لا توجد بيانات حالياً',
+                      en: 'No data available',
+                    )
+                  : normalized,
               textAlign: TextAlign.start,
               style: const TextStyle(
                 fontSize: 14.5,
@@ -201,11 +228,23 @@ class _LoadingView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(height: 14, width: 140, color: Colors.grey.shade700),
+                    Container(
+                      height: 14,
+                      width: 140,
+                      color: Colors.grey.shade700,
+                    ),
                     const SizedBox(height: 10),
-                    Container(height: 12, width: double.infinity, color: Colors.grey.shade700),
+                    Container(
+                      height: 12,
+                      width: double.infinity,
+                      color: Colors.grey.shade700,
+                    ),
                     const SizedBox(height: 6),
-                    Container(height: 12, width: 220, color: Colors.grey.shade700),
+                    Container(
+                      height: 12,
+                      width: 220,
+                      color: Colors.grey.shade700,
+                    ),
                   ],
                 ),
               ),
@@ -289,12 +328,25 @@ class _ErrorView extends StatelessWidget {
               color: Colors.grey.shade700,
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.info_outline, color: Colors.grey.shade400, size: 30),
+            child: Icon(
+              Icons.info_outline,
+              color: Colors.grey.shade400,
+              size: 30,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
-            t(context, 'about.load_failed', ar: 'تعذر تحميل البيانات', en: 'Failed to load data'),
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white),
+            t(
+              context,
+              'about.load_failed',
+              ar: 'تعذر تحميل البيانات',
+              en: 'Failed to load data',
+            ),
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -315,7 +367,9 @@ class _ErrorView extends StatelessWidget {
                 ),
               ),
               onPressed: onRetry,
-              child: Text(t(context, 'about.retry', ar: 'إعادة المحاولة', en: 'Retry')),
+              child: Text(
+                t(context, 'about.retry', ar: 'إعادة المحاولة', en: 'Retry'),
+              ),
             ),
           ),
         ],

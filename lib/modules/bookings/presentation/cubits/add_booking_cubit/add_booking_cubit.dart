@@ -25,9 +25,11 @@ class AddBookingCubit extends Cubit<AddBookingState> {
     required int deviceId,
   }) async {
     if (await _isGuestMode()) {
+      if (isClosed) return;
       emit(AddBookingGuestNotAllowed());
       return;
     }
+    if (isClosed) return;
     emit(AddBookingLoading());
     try {
       final msg = await _remote.addBooking(
@@ -37,8 +39,10 @@ class AddBookingCubit extends Cubit<AddBookingState> {
         serviceId: serviceId,
         deviceId: deviceId,
       );
+      if (isClosed) return;
       emit(AddBookingSuccess(msg));
     } catch (e) {
+      if (isClosed) return;
       emit(AddBookingError(e.toString()));
     }
   }

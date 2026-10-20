@@ -50,7 +50,7 @@ class _StartupDeciderScreenState extends State<StartupDeciderScreen> {
     if (token != null && token.trim().isNotEmpty) {
       Navigator.pushNamedAndRemoveUntil(
         context,
-        RoutesName.chooseCarScreen,
+        RoutesName.homeScreen,
         (route) => false,
       );
     } else {

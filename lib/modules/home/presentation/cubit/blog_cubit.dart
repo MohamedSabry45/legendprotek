@@ -18,15 +18,19 @@ class BlogCubit extends Cubit<BlogState> {
   }
 
   Future<void> loadFirst({String? localeCode}) async {
+    if (isClosed) return;
     emit(BlogLoading());
     try {
       if (await _isGuestMode()) {
+        if (isClosed) return;
         emit(BlogSuccess(const []));
         return;
       }
       final posts = await _remote.getBlogPosts(localeCode: localeCode);
+      if (isClosed) return;
       emit(BlogSuccess(posts));
     } catch (e) {
+      if (isClosed) return;
       emit(BlogError(e.toString()));
     }
   }

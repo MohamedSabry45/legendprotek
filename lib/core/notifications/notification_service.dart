@@ -1,10 +1,21 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import 'package:reservation_workshop/config/routes/routes_name.dart';
+import 'package:reservation_workshop/core/network/local/cache_helper.dart';
+import 'package:reservation_workshop/core/utils/strings/prefkeys.dart';
+import 'package:reservation_workshop/modules/job_estimators/presentation/screens/job_estimator_details_args.dart';
+import 'package:reservation_workshop/modules/job_order_details/presentation/screens/job_order_details_args.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
+
+  /// Set from main.dart so notifications can navigate without a context.
+  static GlobalKey<NavigatorState>? navigatorKey;
 
   static const AndroidNotificationChannel _androidChannel = AndroidNotificationChannel(
     'whatsapp_like_channel',
@@ -22,7 +33,10 @@ class NotificationService {
     const iosInit = DarwinInitializationSettings();
     const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
 
-    await _plugin.initialize(initSettings);
+    await _plugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: _onNotificationResponse,
+    );
 
     final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     if (android != null) {
@@ -38,9 +52,22 @@ class NotificationService {
     _initialized = true;
   }
 
+  static void _onNotificationResponse(NotificationResponse response) {
+    final payload = response.payload;
+    if (payload == null || payload.trim().isEmpty) return;
+
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map) {
+        handleNotificationData(Map<String, dynamic>.from(decoded));
+      }
+    } catch (_) {}
+  }
+
   static Future<void> show({
     required String title,
     required String body,
+    Map<String, dynamic>? data,
   }) async {
     await ensureInitialized();
 
@@ -67,6 +94,7 @@ class NotificationService {
       title,
       body,
       details,
+      payload: (data == null || data.isEmpty) ? null : jsonEncode(data),
     );
   }
 
@@ -113,7 +141,84 @@ class NotificationService {
       title,
       body,
       details,
-      payload: message.data.isEmpty ? null : message.data.toString(),
+      payload: message.data.isEmpty ? null : jsonEncode(message.data),
     );
+  }
+
+  /// Handles a notification tap from any source (FCM or local) and navigates
+  /// based on `data['type']` + `data['reference_id']`.
+  static void handleNotificationData(Map<String, dynamic> data) {
+    _dispatch(data, retriesLeft: 20);
+  }
+
+  static void _dispatch(Map<String, dynamic> data, {required int retriesLeft}) {
+    final nav = navigatorKey?.currentState;
+    if (nav == null) {
+      if (retriesLeft <= 0) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _dispatch(data, retriesLeft: retriesLeft - 1);
+      });
+      return;
+    }
+    _navigate(nav, data);
+  }
+
+  static int? _toInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    return int.tryParse(v.toString());
+  }
+
+  static Future<String?> _phoneLast4() async {
+    final cached = await CacheHelper.getDataAsync<String>(
+      key: PrefKeys.kJobOrderPhoneLast4,
+    );
+    final v = cached?.trim();
+    return (v == null || v.isEmpty) ? null : v;
+  }
+
+  static Future<void> _navigate(
+    NavigatorState nav,
+    Map<String, dynamic> data,
+  ) async {
+    final type = (data['type'] ?? '').toString().trim().toLowerCase();
+    final referenceId = _toInt(data['reference_id']) ??
+        _toInt(data['referenceId']) ??
+        _toInt(data['id']);
+
+    switch (type) {
+      case 'offer':
+      case 'job_estimator':
+        final id = referenceId ?? _toInt(data['job_estimator_id']);
+        final phone = await _phoneLast4();
+        if (id != null && phone != null) {
+          nav.pushNamed(
+            RoutesName.jobEstimatorDetailsScreen,
+            arguments: JobEstimatorDetailsArgs(id: id, phoneLast4: phone),
+          );
+          return;
+        }
+        break;
+      case 'job_order':
+      case 'job_sheet':
+      case 'maintenance_note':
+        final id = referenceId ??
+            _toInt(data['job_sheet_id']) ??
+            _toInt(data['job_order_id']);
+        final phone = await _phoneLast4();
+        if (id != null && phone != null) {
+          nav.pushNamed(
+            RoutesName.jobOrderDetailsScreen,
+            arguments: JobOrderDetailsArgs(jobOrderId: id, phoneLast4: phone),
+          );
+          return;
+        }
+        break;
+      case 'back_in_stock':
+        nav.pushNamed(RoutesName.sparePartsScreen);
+        return;
+    }
+
+    nav.pushNamed(RoutesName.notificationsScreen);
   }
 }

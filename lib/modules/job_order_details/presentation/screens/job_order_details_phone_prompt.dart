@@ -1,13 +1,18 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class JobOrderDetailsPhonePrompt extends StatefulWidget {
   const JobOrderDetailsPhonePrompt({super.key});
 
   @override
-  State<JobOrderDetailsPhonePrompt> createState() => _JobOrderDetailsPhonePromptState();
+  State<JobOrderDetailsPhonePrompt> createState() =>
+      _JobOrderDetailsPhonePromptState();
 }
 
-class _JobOrderDetailsPhonePromptState extends State<JobOrderDetailsPhonePrompt> {
+class _JobOrderDetailsPhonePromptState
+    extends State<JobOrderDetailsPhonePrompt> {
   final TextEditingController _controller = TextEditingController();
   String? _error;
 
@@ -26,25 +31,27 @@ class _JobOrderDetailsPhonePromptState extends State<JobOrderDetailsPhonePrompt>
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: context.locale.languageCode == 'ar'
+          ? ui.TextDirection.rtl
+          : ui.TextDirection.ltr,
       child: AlertDialog(
-        title: const Text(
-          'تأكيد رقم الهاتف',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
+        title: Text(
+          'job_order.phone_prompt_title'.tr(),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'اكتب آخر 4 أرقام من رقم الموبايل لعرض تفاصيل أمر العمل.',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            Text(
+              'job_order.phone_prompt_message'.tr(),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _controller,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                hintText: 'مثال: 4154',
+                hintText: 'job_order.phone_prompt_hint'.tr(),
                 errorText: _error,
                 border: const OutlineInputBorder(),
               ),
@@ -55,23 +62,23 @@ class _JobOrderDetailsPhonePromptState extends State<JobOrderDetailsPhonePrompt>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, null),
-            child: const Text(
-              'إلغاء',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+            child: Text(
+              'common.cancel'.tr(),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
             ),
           ),
           TextButton(
             onPressed: () {
               final v = _controller.text;
               if (!_isValidLast4(v)) {
-                setState(() => _error = 'لازم 4 أرقام');
+                setState(() => _error = 'job_order.phone_prompt_invalid'.tr());
                 return;
               }
               Navigator.pop(context, v.trim());
             },
-            child: const Text(
-              'متابعة',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+            child: Text(
+              'common.continue_action'.tr(),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
             ),
           ),
         ],

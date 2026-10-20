@@ -109,6 +109,20 @@ class ApiEndpoints {
   static const String maintenanceNotificationsMarkRead = '/connector/api/maintenance-notifications/mark-read';
   static const String maintenanceNotificationsMarkAllRead = '/connector/api/maintenance-notifications/mark-all-read';
 
+  static const String fcmTokens = '/connector/api/fcm-tokens';
+
+  static const String userNotifications = '/connector/api/user-notifications';
+  static const String userNotificationsUnreadCount = '/connector/api/user-notifications/unread-count';
+  static const String userNotificationsReadAll = '/connector/api/user-notifications/read-all';
+
+  static String userNotificationRead({required String id}) {
+    return '/connector/api/user-notifications/$id/read';
+  }
+
+  static String userNotification({required String id}) {
+    return '/connector/api/user-notifications/$id';
+  }
+
   static const String blog = '/connector/api/blog';
 
   static String blogDetails({required int id}) {
@@ -143,6 +157,9 @@ class ApiEndpoints {
   static const String sellProforma = '/connector/api/sell/proforma';
 
   static const String businessLocation = '/connector/api/business-location';
+
+  static String socialMedia({int businessId = 1}) =>
+      '/connector/api/ecommerce/social-media?business_id=$businessId';
 
   static const String sendOtp = '/auth/send-otp';
   static const String verifyOtp = '/auth/verify-otp';

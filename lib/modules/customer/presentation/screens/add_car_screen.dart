@@ -30,7 +30,10 @@ class _AddCarScreenState extends State<AddCarScreen> {
   BrandModel? _selectedBrand;
   CarModelModel? _selectedModel;
 
-  final List<String> _years = List.generate(30, (index) => (2026 - index).toString());
+  final List<String> _years = List.generate(
+    30,
+    (index) => (2026 - index).toString(),
+  );
   String? _selectedYear;
 
   bool _loadingBrands = false;
@@ -59,7 +62,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
         _brands = list;
       });
     } catch (e) {
-      Toasters.show(e.toString());
+      Toasters.errorFrom(e, fallbackKey: 'cars.add_failed');
     } finally {
       if (mounted) {
         setState(() => _loadingBrands = false);
@@ -81,7 +84,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
         _models = list;
       });
     } catch (e) {
-      Toasters.show(e.toString());
+      Toasters.errorFrom(e, fallbackKey: 'cars.add_failed');
     } finally {
       if (mounted) {
         setState(() => _loadingModels = false);
@@ -90,8 +93,10 @@ class _AddCarScreenState extends State<AddCarScreen> {
   }
 
   String? _requiredValidator(String? v) {
-    if (v == null) return t(context, 'validation.required', ar: 'مطلوب', en: 'Required');
-    if (v.trim().isEmpty) return t(context, 'validation.required', ar: 'مطلوب', en: 'Required');
+    if (v == null)
+      return t(context, 'validation.required', ar: 'مطلوب', en: 'Required');
+    if (v.trim().isEmpty)
+      return t(context, 'validation.required', ar: 'مطلوب', en: 'Required');
     return null;
   }
 
@@ -101,15 +106,26 @@ class _AddCarScreenState extends State<AddCarScreen> {
     final year = _selectedYear;
 
     if (brand == null) {
-      Toasters.show(t(context, 'cars.select_brand', ar: 'اختر الماركة', en: 'Select brand'));
+      Toasters.error(
+        t(context, 'cars.select_brand', ar: 'اختر الماركة', en: 'Select brand'),
+      );
       return;
     }
     if (model == null) {
-      Toasters.show(t(context, 'cars.select_model', ar: 'اختر الموديل', en: 'Select model'));
+      Toasters.error(
+        t(context, 'cars.select_model', ar: 'اختر الموديل', en: 'Select model'),
+      );
       return;
     }
     if (year == null || year.trim().isEmpty) {
-      Toasters.show(t(context, 'cars.select_year', ar: 'اختر سنة الصنع', en: 'Select manufacturing year'));
+      Toasters.error(
+        t(
+          context,
+          'cars.select_year',
+          ar: 'اختر سنة الصنع',
+          en: 'Select manufacturing year',
+        ),
+      );
       return;
     }
 
@@ -119,7 +135,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
     showPrograssDelayDialog(context);
     try {
-      final msg = await _ds.addCar(
+      await _ds.addCar(
         brandId: brand.id,
         modelId: model.id,
         color: _colorController.text.trim(),
@@ -131,18 +147,25 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).maybePop();
-      
+
       if (!mounted) return;
-      Toasters.show(msg.isNotEmpty ? msg : t(context, 'cars.add_success', ar: 'تم إضافة السيارة بنجاح', en: 'Car added successfully'));
-      
+      Toasters.success(
+        t(
+          context,
+          'cars.add_success',
+          ar: 'تم إضافة السيارة بنجاح',
+          en: 'Car added successfully',
+        ),
+      );
+
       await Future.delayed(const Duration(milliseconds: 300));
-      
+
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).maybePop();
-      Toasters.show(e.toString());
+      Toasters.errorFrom(e, fallbackKey: 'cars.add_failed');
     }
   }
 
@@ -176,7 +199,10 @@ class _AddCarScreenState extends State<AddCarScreen> {
         elevation: 0,
         title: Text(
           t(context, 'cars.add_car_title', ar: 'إضافة سيارة', en: 'Add Car'),
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+          ),
         ),
         iconTheme: const IconThemeData(color: Colors.white70),
         foregroundColor: Colors.white,
@@ -185,14 +211,21 @@ class _AddCarScreenState extends State<AddCarScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Directionality(
-            textDirection: isLtr(context) ? ui.TextDirection.ltr : ui.TextDirection.rtl,
+            textDirection: isLtr(context)
+                ? ui.TextDirection.ltr
+                : ui.TextDirection.rtl,
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    t(context, 'cars.car_info', ar: 'معلومات السيارة', en: 'Car Information'),
+                    t(
+                      context,
+                      'cars.car_info',
+                      ar: 'معلومات السيارة',
+                      en: 'Car Information',
+                    ),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 20,
@@ -205,21 +238,35 @@ class _AddCarScreenState extends State<AddCarScreen> {
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A1A),
-                      border: Border.all(color: const Color(0xFF2A2A2A), width: 1),
+                      border: Border.all(
+                        color: const Color(0xFF2A2A2A),
+                        width: 1,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: TextFormField(
                       controller: _chassisController,
                       validator: _requiredValidator,
                       textDirection: ui.TextDirection.ltr,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
                       decoration: InputDecoration(
-                        hintText: t(context, 'cars.chassis_number', ar: 'رقم الشاسيه', en: 'Chassis Number'),
+                        hintText: t(
+                          context,
+                          'cars.chassis_number',
+                          ar: 'رقم الشاسيه',
+                          en: 'Chassis Number',
+                        ),
                         hintStyle: const TextStyle(color: Colors.white54),
                         filled: true,
                         fillColor: Colors.transparent,
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -228,35 +275,62 @@ class _AddCarScreenState extends State<AddCarScreen> {
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A1A),
-                      border: Border.all(color: const Color(0xFF2A2A2A), width: 1),
+                      border: Border.all(
+                        color: const Color(0xFF2A2A2A),
+                        width: 1,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: TextFormField(
                       controller: _plateController,
                       validator: _requiredValidator,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
                       decoration: InputDecoration(
-                        hintText: t(context, 'cars.plate_number', ar: 'رقم اللوحة', en: 'Plate Number'),
+                        hintText: t(
+                          context,
+                          'cars.plate_number',
+                          ar: 'رقم اللوحة',
+                          en: 'Plate Number',
+                        ),
                         hintStyle: const TextStyle(color: Colors.white54),
                         filled: true,
                         fillColor: Colors.transparent,
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
                   // Brand Dropdown
                   DropdownButtonFormField<BrandModel>(
-                    decoration: _dropdownDecoration(hint: t(context, 'cars.brand', ar: 'الماركة', en: 'Brand')),
+                    decoration: _dropdownDecoration(
+                      hint: t(
+                        context,
+                        'cars.brand',
+                        ar: 'الماركة',
+                        en: 'Brand',
+                      ),
+                    ),
                     value: _selectedBrand,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
                     dropdownColor: const Color(0xFF1A1A1A),
                     items: _brands
                         .map(
                           (b) => DropdownMenuItem<BrandModel>(
                             value: b,
-                            child: Text(b.name, style: const TextStyle(color: Colors.white)),
+                            child: Text(
+                              b.name,
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           ),
                         )
                         .toList(),
@@ -279,19 +353,34 @@ class _AddCarScreenState extends State<AddCarScreen> {
                   const SizedBox(height: 12),
                   // Model Dropdown
                   DropdownButtonFormField<CarModelModel>(
-                    decoration: _dropdownDecoration(hint: t(context, 'cars.model', ar: 'الموديل', en: 'Model')),
+                    decoration: _dropdownDecoration(
+                      hint: t(
+                        context,
+                        'cars.model',
+                        ar: 'الموديل',
+                        en: 'Model',
+                      ),
+                    ),
                     value: _selectedModel,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
                     dropdownColor: const Color(0xFF1A1A1A),
                     items: _models
                         .map(
                           (m) => DropdownMenuItem<CarModelModel>(
                             value: m,
-                            child: Text(m.name, style: const TextStyle(color: Colors.white)),
+                            child: Text(
+                              m.name,
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           ),
                         )
                         .toList(),
-                    onChanged: (_loadingModels || _selectedBrand == null) ? null : (v) => setState(() => _selectedModel = v),
+                    onChanged: (_loadingModels || _selectedBrand == null)
+                        ? null
+                        : (v) => setState(() => _selectedModel = v),
                   ),
                   if (_loadingModels)
                     const Padding(
@@ -303,35 +392,62 @@ class _AddCarScreenState extends State<AddCarScreen> {
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A1A),
-                      border: Border.all(color: const Color(0xFF2A2A2A), width: 1),
+                      border: Border.all(
+                        color: const Color(0xFF2A2A2A),
+                        width: 1,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: TextFormField(
                       controller: _colorController,
                       validator: _requiredValidator,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
                       decoration: InputDecoration(
-                        hintText: t(context, 'cars.color', ar: 'اللون', en: 'Color'),
+                        hintText: t(
+                          context,
+                          'cars.color',
+                          ar: 'اللون',
+                          en: 'Color',
+                        ),
                         hintStyle: const TextStyle(color: Colors.white54),
                         filled: true,
                         fillColor: Colors.transparent,
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
                   // Year Dropdown
                   DropdownButtonFormField<String>(
-                    decoration: _dropdownDecoration(hint: t(context, 'cars.manufacturing_year', ar: 'سنة الصنع', en: 'Manufacturing Year')),
+                    decoration: _dropdownDecoration(
+                      hint: t(
+                        context,
+                        'cars.manufacturing_year',
+                        ar: 'سنة الصنع',
+                        en: 'Manufacturing Year',
+                      ),
+                    ),
                     value: _selectedYear,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
                     dropdownColor: const Color(0xFF1A1A1A),
                     items: _years
                         .map(
                           (y) => DropdownMenuItem<String>(
                             value: y,
-                            child: Text(y, style: const TextStyle(color: Colors.white)),
+                            child: Text(
+                              y,
+                              style: const TextStyle(color: Colors.white),
+                            ),
                           ),
                         )
                         .toList(),
@@ -352,8 +468,16 @@ class _AddCarScreenState extends State<AddCarScreen> {
                       ),
                       onPressed: _submit,
                       child: Text(
-                        t(context, 'cars.add_car', ar: 'إضافة سيارة', en: 'Add Car'),
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                        t(
+                          context,
+                          'cars.add_car',
+                          ar: 'إضافة سيارة',
+                          en: 'Add Car',
+                        ),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),

@@ -45,7 +45,9 @@ class JobOrderCarInfoModel {
       model: json['model']?.toString() ?? '',
       catname: json['catname']?.toString() ?? '',
       service: json['service']?.toString() ?? '',
-      status: json['status'] is int ? json['status'] as int : int.tryParse(json['status']?.toString() ?? '') ?? 0,
+      status: json['status'] is int
+          ? json['status'] as int
+          : int.tryParse(json['status']?.toString() ?? '') ?? 0,
       entryDate: json['entry_date']?.toString() ?? '',
       dueDate: json['due_date']?.toString() ?? '',
       bookingStart: json['booking_start']?.toString() ?? '',

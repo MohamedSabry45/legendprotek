@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:reservation_workshop/config/style/app_colors.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 
 import '../../data/datasources/vehicle_filters_remote_datasource.dart';
 import '../cubit/vehicles_cubit.dart';
@@ -113,7 +114,11 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
     });
 
     try {
-      final models = await _filtersDataSource.getModels(brandCategoryId: brandId, perPage: 50, page: 1);
+      final models = await _filtersDataSource.getModels(
+        brandCategoryId: brandId,
+        perPage: 50,
+        page: 1,
+      );
       if (!mounted) return;
       setState(() {
         _models = models;
@@ -133,9 +138,7 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
     final valid = _formKey.currentState?.validate() ?? false;
     if (!valid) return;
     if (_selectedBrand == null || _selectedModel == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.locale.languageCode == 'ar' ? 'اختر الماركة والموديل' : 'Please select brand & model')),
-      );
+      Toasters.errorKey('add_vehicle.select_brand_model');
       return;
     }
 
@@ -145,22 +148,12 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
         _selectedTransmission == null ||
         _selectedLicenseType == null ||
         _currencyController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.locale.languageCode == 'ar'
-                ? 'من فضلك اكمل البيانات الأساسية (الحالة/الهيكل/الوقود/الفتيس/نوع الرخصة/العملة)'
-                : 'Please fill required fields (condition/body type/fuel/transmission/license type/currency)',
-          ),
-        ),
-      );
+      Toasters.errorKey('add_vehicle.fill_required');
       return;
     }
 
     if (_imagesDataUrls.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.locale.languageCode == 'ar' ? 'من فضلك اختر صورة' : 'Please select an image')),
-      );
+      Toasters.errorKey('add_vehicle.please_add_images');
       return;
     }
 
@@ -208,24 +201,15 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
     setState(() => _isSubmitting = true);
 
     try {
-      final msg = await context.read<VehiclesCubit>().createSellerVehicle(body: body);
+      await context.read<VehiclesCubit>().createSellerVehicle(
+        body: body,
+      );
       if (!mounted) return;
-      if (msg.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-      }
+      Toasters.success('add_vehicle.success'.tr());
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.locale.languageCode == 'ar'
-                ? 'فشل الإرسال: ${e.toString()}'
-                : 'Failed to create: ${e.toString()}',
-          ),
-          duration: const Duration(seconds: 6),
-        ),
-      );
+      Toasters.errorFrom(e, fallbackKey: 'add_vehicle.error');
       setState(() => _isSubmitting = false);
     }
   }
@@ -238,7 +222,9 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.92,
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.88),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
+        ),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -264,11 +250,17 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                       color: AppColors.brandPrimary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.add, color: AppColors.brandPrimary, size: 28),
+                    child: Icon(
+                      Icons.add,
+                      color: AppColors.brandPrimary,
+                      size: 28,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    context.locale.languageCode == 'ar' ? 'إضافة سيارة للبيع' : 'Add vehicle for sale',
+                    context.locale.languageCode == 'ar'
+                        ? 'إضافة سيارة للبيع'
+                        : 'Add vehicle for sale',
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF1A1A1A),
@@ -290,7 +282,9 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                         children: [
                           Expanded(
                             child: FilterDropdown(
-                              label: context.locale.languageCode == 'ar' ? 'الماركة' : 'Brand',
+                              label: context.locale.languageCode == 'ar'
+                                  ? 'الماركة'
+                                  : 'Brand',
                               value: _selectedBrand,
                               items: _brands,
                               isLoading: _isLoadingBrands,
@@ -305,12 +299,16 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: FilterDropdown(
-                              label: context.locale.languageCode == 'ar' ? 'الموديل' : 'Model',
+                              label: context.locale.languageCode == 'ar'
+                                  ? 'الموديل'
+                                  : 'Model',
                               value: _selectedModel,
                               items: _models,
                               isLoading: _isLoadingModels,
-                              enabled: _selectedBrand != null && !_isLoadingModels,
-                              onChanged: (v) => setState(() => _selectedModel = v),
+                              enabled:
+                                  _selectedBrand != null && !_isLoadingModels,
+                              onChanged: (v) =>
+                                  setState(() => _selectedModel = v),
                             ),
                           ),
                         ],
@@ -318,16 +316,34 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          Expanded(child: _buildTextField(label: context.locale.languageCode == 'ar' ? 'سنة الصنع' : 'Year', controller: _yearController, keyboardType: TextInputType.number)),
+                          Expanded(
+                            child: _buildTextField(
+                              label: context.locale.languageCode == 'ar'
+                                  ? 'سنة الصنع'
+                                  : 'Year',
+                              controller: _yearController,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
                           const SizedBox(width: 16),
-                          Expanded(child: _buildTextField(label: context.locale.languageCode == 'ar' ? 'السعر' : 'Price', controller: _listingPriceController, keyboardType: TextInputType.number)),
+                          Expanded(
+                            child: _buildTextField(
+                              label: context.locale.languageCode == 'ar'
+                                  ? 'السعر'
+                                  : 'Price',
+                              controller: _listingPriceController,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Vehicle Details Section
                       SectionCard(
-                        title: context.locale.languageCode == 'ar' ? 'مواصفات السيارة' : 'Vehicle Details',
+                        title: context.locale.languageCode == 'ar'
+                            ? 'مواصفات السيارة'
+                            : 'Vehicle Details',
                         icon: Icons.settings_rounded,
                         child: Column(
                           children: [
@@ -335,19 +351,26 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                               children: [
                                 Expanded(
                                   child: ModernDropdown(
-                                    label: context.locale.languageCode == 'ar' ? 'الحالة' : 'Condition',
+                                    label: context.locale.languageCode == 'ar'
+                                        ? 'الحالة'
+                                        : 'Condition',
                                     value: _selectedCondition,
                                     items: VehicleFormConstants.conditions,
-                                    onChanged: (val) => setState(() => _selectedCondition = val),
+                                    onChanged: (val) => setState(
+                                      () => _selectedCondition = val,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: ModernDropdown(
-                                    label: context.locale.languageCode == 'ar' ? 'نوع الهيكل' : 'Body type',
+                                    label: context.locale.languageCode == 'ar'
+                                        ? 'نوع الهيكل'
+                                        : 'Body type',
                                     value: _selectedBodyType,
                                     items: VehicleFormConstants.bodyTypes,
-                                    onChanged: (val) => setState(() => _selectedBodyType = val),
+                                    onChanged: (val) =>
+                                        setState(() => _selectedBodyType = val),
                                   ),
                                 ),
                               ],
@@ -357,19 +380,26 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                               children: [
                                 Expanded(
                                   child: ModernDropdown(
-                                    label: context.locale.languageCode == 'ar' ? 'نوع الوقود' : 'Fuel type',
+                                    label: context.locale.languageCode == 'ar'
+                                        ? 'نوع الوقود'
+                                        : 'Fuel type',
                                     value: _selectedFuelType,
                                     items: VehicleFormConstants.fuelTypes,
-                                    onChanged: (val) => setState(() => _selectedFuelType = val),
+                                    onChanged: (val) =>
+                                        setState(() => _selectedFuelType = val),
                                   ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: ModernDropdown(
-                                    label: context.locale.languageCode == 'ar' ? 'ناقل الحركة' : 'Transmission',
+                                    label: context.locale.languageCode == 'ar'
+                                        ? 'ناقل الحركة'
+                                        : 'Transmission',
                                     value: _selectedTransmission,
                                     items: VehicleFormConstants.transmissions,
-                                    onChanged: (val) => setState(() => _selectedTransmission = val),
+                                    onChanged: (val) => setState(
+                                      () => _selectedTransmission = val,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -378,92 +408,171 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Appearance Section
                       SectionCard(
-                        title: context.locale.languageCode == 'ar' ? 'المظهر والتعريف' : 'Appearance & ID',
+                        title: context.locale.languageCode == 'ar'
+                            ? 'المظهر والتعريف'
+                            : 'Appearance & ID',
                         icon: Icons.palette_rounded,
                         child: Column(
                           children: [
                             Row(
                               children: [
-                                Expanded(child: _buildTextField(label: context.locale.languageCode == 'ar' ? 'اللون' : 'Color', controller: _colorController)),
+                                Expanded(
+                                  child: _buildTextField(
+                                    label: context.locale.languageCode == 'ar'
+                                        ? 'اللون'
+                                        : 'Color',
+                                    controller: _colorController,
+                                  ),
+                                ),
                                 const SizedBox(width: 16),
-                                Expanded(child: _buildTextField(label: context.locale.languageCode == 'ar' ? 'الموديل' : 'Trim level', controller: _trimLevelController)),
+                                Expanded(
+                                  child: _buildTextField(
+                                    label: context.locale.languageCode == 'ar'
+                                        ? 'الموديل'
+                                        : 'Trim level',
+                                    controller: _trimLevelController,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 16),
                             Row(
                               children: [
-                                Expanded(child: _buildTextField(label: context.locale.languageCode == 'ar' ? 'رقم الهيكل' : 'VIN number', controller: _vinController)),
+                                Expanded(
+                                  child: _buildTextField(
+                                    label: context.locale.languageCode == 'ar'
+                                        ? 'رقم الهيكل'
+                                        : 'VIN number',
+                                    controller: _vinController,
+                                  ),
+                                ),
                                 const SizedBox(width: 16),
-                                Expanded(child: _buildTextField(label: context.locale.languageCode == 'ar' ? 'رقم اللوحة' : 'Plate number', controller: _plateController)),
+                                Expanded(
+                                  child: _buildTextField(
+                                    label: context.locale.languageCode == 'ar'
+                                        ? 'رقم اللوحة'
+                                        : 'Plate number',
+                                    controller: _plateController,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Location Section
                       SectionCard(
-                        title: context.locale.languageCode == 'ar' ? 'الموقع' : 'Location',
+                        title: context.locale.languageCode == 'ar'
+                            ? 'الموقع'
+                            : 'Location',
                         icon: Icons.location_on_rounded,
                         child: Row(
                           children: [
-                            Expanded(child: _buildTextField(label: context.locale.languageCode == 'ar' ? 'المدينة' : 'City', controller: _locationCityController)),
+                            Expanded(
+                              child: _buildTextField(
+                                label: context.locale.languageCode == 'ar'
+                                    ? 'المدينة'
+                                    : 'City',
+                                controller: _locationCityController,
+                              ),
+                            ),
                             const SizedBox(width: 16),
-                            Expanded(child: _buildTextField(label: context.locale.languageCode == 'ar' ? 'المنطقة' : 'Area', controller: _locationAreaController)),
+                            Expanded(
+                              child: _buildTextField(
+                                label: context.locale.languageCode == 'ar'
+                                    ? 'المنطقة'
+                                    : 'Area',
+                                controller: _locationAreaController,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Description Section
                       SectionCard(
-                        title: context.locale.languageCode == 'ar' ? 'الوصف' : 'Description',
+                        title: context.locale.languageCode == 'ar'
+                            ? 'الوصف'
+                            : 'Description',
                         icon: Icons.description_rounded,
                         child: _buildTextField(
-                          label: context.locale.languageCode == 'ar' ? 'اكتب وصفاً مفصلاً للسيارة' : 'Write a detailed description',
+                          label: context.locale.languageCode == 'ar'
+                              ? 'اكتب وصفاً مفصلاً للسيارة'
+                              : 'Write a detailed description',
                           controller: _descriptionController,
                           maxLines: 4,
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Pricing Details Section
                       SectionCard(
-                        title: context.locale.languageCode == 'ar' ? 'تفاصيل التسعير' : 'Pricing Details',
+                        title: context.locale.languageCode == 'ar'
+                            ? 'تفاصيل التسعير'
+                            : 'Pricing Details',
                         icon: Icons.attach_money_rounded,
                         child: Row(
                           children: [
-                            Expanded(child: _buildTextField(label: context.locale.languageCode == 'ar' ? 'أقل سعر' : 'Min price', controller: _minPriceController, keyboardType: TextInputType.number)),
+                            Expanded(
+                              child: _buildTextField(
+                                label: context.locale.languageCode == 'ar'
+                                    ? 'أقل سعر'
+                                    : 'Min price',
+                                controller: _minPriceController,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
                             const SizedBox(width: 16),
-                            Expanded(child: _buildTextField(label: context.locale.languageCode == 'ar' ? 'العملة' : 'Currency', controller: _currencyController)),
+                            Expanded(
+                              child: _buildTextField(
+                                label: context.locale.languageCode == 'ar'
+                                    ? 'العملة'
+                                    : 'Currency',
+                                controller: _currencyController,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Features Section
                       SectionCard(
-                        title: context.locale.languageCode == 'ar' ? 'المميزات' : 'Features',
+                        title: context.locale.languageCode == 'ar'
+                            ? 'المميزات'
+                            : 'Features',
                         icon: Icons.star_rounded,
                         child: Column(
                           children: [
                             ModernSwitchTile(
-                              title: context.locale.languageCode == 'ar' ? 'دهان مصنع أصلي' : 'Original Factory Paint',
-                              subtitle: context.locale.languageCode == 'ar' ? 'السيارة ذات الدهان الأصلي من المصنع' : 'Vehicle with original factory paint',
+                              title: context.locale.languageCode == 'ar'
+                                  ? 'دهان مصنع أصلي'
+                                  : 'Original Factory Paint',
+                              subtitle: context.locale.languageCode == 'ar'
+                                  ? 'السيارة ذات الدهان الأصلي من المصنع'
+                                  : 'Vehicle with original factory paint',
                               value: _factoryPaint,
-                              onChanged: (v) => setState(() => _factoryPaint = v),
+                              onChanged: (v) =>
+                                  setState(() => _factoryPaint = v),
                               icon: Icons.format_paint_rounded,
                             ),
                             const SizedBox(height: 12),
                             ModernSwitchTile(
-                              title: context.locale.languageCode == 'ar' ? 'مواصفات مستوردة' : 'Imported Specifications',
-                              subtitle: context.locale.languageCode == 'ar' ? 'سيارة بمواصفات عالمية مستوردة' : 'Vehicle with imported international specs',
+                              title: context.locale.languageCode == 'ar'
+                                  ? 'مواصفات مستوردة'
+                                  : 'Imported Specifications',
+                              subtitle: context.locale.languageCode == 'ar'
+                                  ? 'سيارة بمواصفات عالمية مستوردة'
+                                  : 'Vehicle with imported international specs',
                               value: _importedSpecs,
-                              onChanged: (v) => setState(() => _importedSpecs = v),
+                              onChanged: (v) =>
+                                  setState(() => _importedSpecs = v),
                               icon: Icons.flight_land_rounded,
                             ),
                             const SizedBox(height: 16),
@@ -472,18 +581,31 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.badge_rounded, color: AppColors.brandPrimary, size: 20),
+                                    Icon(
+                                      Icons.badge_rounded,
+                                      color: AppColors.brandPrimary,
+                                      size: 20,
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      context.locale.languageCode == 'ar' ? 'نوع الرخصة' : 'License Type',
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.black),
+                                      context.locale.languageCode == 'ar'
+                                          ? 'نوع الرخصة'
+                                          : 'License Type',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black,
+                                      ),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
                                 DropdownButtonFormField<String>(
                                   value: _selectedLicenseType,
-                                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                   dropdownColor: Colors.white,
                                   isExpanded: true,
                                   decoration: InputDecoration(
@@ -491,27 +613,53 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                                     fillColor: Colors.white,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: Colors.grey.shade300),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade300,
+                                      ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: Colors.grey.shade300),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade300,
+                                      ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: AppColors.brandPrimary, width: 2),
+                                      borderSide: BorderSide(
+                                        color: AppColors.brandPrimary,
+                                        width: 2,
+                                      ),
                                     ),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                                    hintStyle: TextStyle(color: Colors.grey.shade500),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 14,
+                                    ),
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey.shade500,
+                                    ),
                                   ),
-                                  items: VehicleFormConstants.licenseTypes.map((type) {
-                                    final label = VehicleFormConstants.getLicenseTypeLabel(type, context.locale.languageCode);
+                                  items: VehicleFormConstants.licenseTypes.map((
+                                    type,
+                                  ) {
+                                    final label =
+                                        VehicleFormConstants.getLicenseTypeLabel(
+                                          type,
+                                          context.locale.languageCode,
+                                        );
                                     return DropdownMenuItem(
                                       value: type,
-                                      child: Text(label, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+                                      child: Text(
+                                        label,
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                                     );
                                   }).toList(),
-                                  onChanged: (val) => setState(() => _selectedLicenseType = val),
+                                  onChanged: (val) => setState(
+                                    () => _selectedLicenseType = val,
+                                  ),
                                 ),
                               ],
                             ),
@@ -519,14 +667,17 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Image Upload Section
                       SectionCard(
-                        title: context.locale.languageCode == 'ar' ? 'صور السيارة' : 'Vehicle Images',
+                        title: context.locale.languageCode == 'ar'
+                            ? 'صور السيارة'
+                            : 'Vehicle Images',
                         icon: Icons.photo_library_rounded,
                         child: ImageWatermarkPicker(
                           initialImages: _imagesDataUrls,
-                          onImagesChanged: (val) => setState(() => _imagesDataUrls = val),
+                          onImagesChanged: (val) =>
+                              setState(() => _imagesDataUrls = val),
                         ),
                       ),
                     ],
@@ -557,11 +708,16 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.grey.shade300, width: 1.5),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 1.5,
+                        ),
                         color: Colors.white,
                       ),
                       child: TextButton(
-                        onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(false),
+                        onPressed: _isSubmitting
+                            ? null
+                            : () => Navigator.of(context).pop(false),
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -571,7 +727,11 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.close_rounded, color: Colors.grey.shade600, size: 20),
+                            Icon(
+                              Icons.close_rounded,
+                              color: Colors.grey.shade600,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'buy_car.cancel'.tr(),
@@ -620,16 +780,25 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
                                 height: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
-                                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
                                 ),
                               )
                             : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                                  const Icon(
+                                    Icons.add_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    context.locale.languageCode == 'ar' ? 'إضافة سيارة' : 'Add Vehicle',
+                                    context.locale.languageCode == 'ar'
+                                        ? 'إضافة سيارة'
+                                        : 'Add Vehicle',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -679,7 +848,9 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
           validator: validator,
           style: const TextStyle(color: Colors.black),
           decoration: InputDecoration(
-            hintText: context.locale.languageCode == 'ar' ? 'اكتب $label' : 'Enter $label',
+            hintText: context.locale.languageCode == 'ar'
+                ? 'اكتب $label'
+                : 'Enter $label',
             filled: true,
             fillColor: const Color(0xFFF8F9FA),
             border: OutlineInputBorder(
@@ -692,17 +863,29 @@ class _AddVehicleDialogState extends State<AddVehicleDialog> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.brandPrimary, width: 2),
+              borderSide: const BorderSide(
+                color: AppColors.brandPrimary,
+                width: 2,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: const Color(0xFFD4AF37), width: 1),
+              borderSide: const BorderSide(
+                color: const Color(0xFFD4AF37),
+                width: 1,
+              ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: const Color(0xFFD4AF37), width: 2),
+              borderSide: const BorderSide(
+                color: const Color(0xFFD4AF37),
+                width: 2,
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
             hintStyle: TextStyle(color: Colors.grey.shade500),
           ),
         ),

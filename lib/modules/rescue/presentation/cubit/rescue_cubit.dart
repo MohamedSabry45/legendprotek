@@ -23,10 +23,12 @@ class RescueCubit extends Cubit<RescueState> {
   late final ServiceRemoteDataSource _serviceRemote = ServiceRemoteDataSource();
 
   Future<bool> _isGuestMode() async {
-    return await CacheHelper.getDataAsync<bool>(key: PrefKeys.kIsGuestMode) ?? false;
+    return await CacheHelper.getDataAsync<bool>(key: PrefKeys.kIsGuestMode) ??
+        false;
   }
 
   Future<void> load({required CustomerInfoCubit customerInfoCubit}) async {
+    if (isClosed) return;
     emit(RescueLoading());
     try {
       final isGuest = await _isGuestMode();
@@ -42,14 +44,18 @@ class RescueCubit extends Cubit<RescueState> {
       final cars = customerState.info.cars;
       final branches = isGuest ? <Branch>[] : await _branchRemote.getBranches();
 
-      emit(RescueLoaded(
-        cars: cars,
-        branches: branches,
-        services: const [],
-        isSubmitting: false,
-        isGuest: isGuest,
-      ));
+      if (isClosed) return;
+      emit(
+        RescueLoaded(
+          cars: cars,
+          branches: branches,
+          services: const [],
+          isSubmitting: false,
+          isGuest: isGuest,
+        ),
+      );
     } catch (e) {
+      if (isClosed) return;
       emit(RescueError(e.toString()));
     }
   }
@@ -59,43 +65,56 @@ class RescueCubit extends Cubit<RescueState> {
     if (current is! RescueLoaded) return;
 
     try {
-      final services = await _isGuestMode() ? <Service>[] : await _serviceRemote.getServices(locationId: locationId);
-      emit(RescueLoaded(
-        cars: current.cars,
-        branches: current.branches,
-        services: services,
-        isSubmitting: current.isSubmitting,
-        isGuest: current.isGuest,
-      ));
+      final services = await _isGuestMode()
+          ? <Service>[]
+          : await _serviceRemote.getServices(locationId: locationId);
+      if (isClosed) return;
+      emit(
+        RescueLoaded(
+          cars: current.cars,
+          branches: current.branches,
+          services: services,
+          isSubmitting: current.isSubmitting,
+          isGuest: current.isGuest,
+        ),
+      );
     } catch (e) {
+      if (isClosed) return;
       emit(RescueError(e.toString()));
     }
   }
 
   Future<void> submit({required PickupRequestModel request}) async {
     if (await _isGuestMode()) {
+      if (isClosed) return;
       emit(RescueGuestNotAllowed());
       return;
     }
     final current = state;
     if (current is! RescueLoaded) return;
 
-    emit(RescueLoaded(
-      cars: current.cars,
-      branches: current.branches,
-      services: current.services,
-      isSubmitting: true,
-      isGuest: current.isGuest,
-    ));
+    if (isClosed) return;
+    emit(
+      RescueLoaded(
+        cars: current.cars,
+        branches: current.branches,
+        services: current.services,
+        isSubmitting: true,
+        isGuest: current.isGuest,
+      ),
+    );
 
     try {
       final res = await _remote.customerPickupRequest(request: request);
       if (res.success) {
-        emit(RescueSuccess(res.message.isEmpty ? 'تم إرسال طلب الإنقاذ بنجاح' : res.message));
+        if (isClosed) return;
+        emit(RescueSuccess(res.message));
       } else {
-        emit(RescueError(res.message.isEmpty ? 'تعذر إرسال الطلب' : res.message));
+        if (isClosed) return;
+        emit(RescueError(res.message));
       }
     } catch (e) {
+      if (isClosed) return;
       emit(RescueError(e.toString()));
     }
   }

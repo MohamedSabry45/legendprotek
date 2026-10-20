@@ -10,11 +10,14 @@ class VehicleDetailsCubit extends Cubit<VehicleDetailsState> {
   late final VehicleDetailsRemoteDataSource _remote = VehicleDetailsRemoteDataSource();
 
   Future<void> load() async {
+    if (isClosed) return;
     emit(VehicleDetailsLoading());
     try {
       final details = await _remote.getVehicleDetails(id: id);
+      if (isClosed) return;
       emit(VehicleDetailsSuccess(details));
     } catch (e) {
+      if (isClosed) return;
       emit(VehicleDetailsError(e.toString()));
     }
   }

@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/style/app_colors.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 
 import '../cubit/vehicle_details_cubit.dart';
 import '../cubit/vehicle_details_state.dart';
@@ -17,10 +18,7 @@ import '../widgets/vehicle_details/vehicle_inquiry_dialog.dart';
 class VehicleDetailsScreen extends StatelessWidget {
   final int vehicleId;
 
-  const VehicleDetailsScreen({
-    super.key,
-    required this.vehicleId,
-  });
+  const VehicleDetailsScreen({super.key, required this.vehicleId});
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +48,11 @@ class _VehicleDetailsView extends StatelessWidget {
       body: SafeArea(
         child: BlocBuilder<VehicleDetailsCubit, VehicleDetailsState>(
           builder: (context, state) {
-            if (state is VehicleDetailsLoading || state is VehicleDetailsInitial) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.brandPrimary));
+            if (state is VehicleDetailsLoading ||
+                state is VehicleDetailsInitial) {
+              return const Center(
+                child: CircularProgressIndicator(color: AppColors.brandPrimary),
+              );
             }
 
             if (state is VehicleDetailsError) {
@@ -61,26 +62,39 @@ class _VehicleDetailsView extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.wifi_off, color: Colors.white70, size: 44),
+                      const Icon(
+                        Icons.wifi_off,
+                        color: Colors.white70,
+                        size: 44,
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         'buy_car.loading_error'.tr(),
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: Colors.white),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        state.message,
-                        style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70, fontWeight: FontWeight.w600),
+                        Toasters.displayMessage(state.message),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w600,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 14),
                       FilledButton(
-                        onPressed: () => context.read<VehicleDetailsCubit>().load(),
+                        onPressed: () =>
+                            context.read<VehicleDetailsCubit>().load(),
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.brandPrimary,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
                         child: Text('buy_car.retry'.tr()),
                       ),
@@ -97,7 +111,9 @@ class _VehicleDetailsView extends StatelessWidget {
               return Column(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(24),
+                    ),
                     child: AspectRatio(
                       aspectRatio: 16 / 10,
                       child: Stack(
@@ -117,10 +133,15 @@ class _VehicleDetailsView extends StatelessWidget {
                             right: 12,
                             child: Row(
                               children: [
-                                _TopNavButton(icon: Icons.share_outlined, onTap: () {}),
+                                _TopNavButton(
+                                  icon: Icons.share_outlined,
+                                  onTap: () {},
+                                ),
                                 const SizedBox(width: 10),
                                 _TopNavButton(
-                                  icon: d.isFavorited ? Icons.favorite : Icons.favorite_border,
+                                  icon: d.isFavorited
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
                                   onTap: () {},
                                 ),
                               ],
@@ -130,7 +151,10 @@ class _VehicleDetailsView extends StatelessWidget {
                             left: 12,
                             right: 12,
                             bottom: 12,
-                            child: VehicleBadges(isPremium: d.isPremium, isFeatured: d.isFeatured),
+                            child: VehicleBadges(
+                              isPremium: d.isPremium,
+                              isFeatured: d.isFeatured,
+                            ),
                           ),
                         ],
                       ),
@@ -156,11 +180,18 @@ class _VehicleDetailsView extends StatelessWidget {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(Icons.location_on_outlined, size: 18, color: Colors.white70),
+                            const Icon(
+                              Icons.location_on_outlined,
+                              size: 18,
+                              color: Colors.white70,
+                            ),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                [d.locationCity, d.locationArea].where((e) => e.trim().isNotEmpty).join(', '),
+                                [
+                                  d.locationCity,
+                                  d.locationArea,
+                                ].where((e) => e.trim().isNotEmpty).join(', '),
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white70,
@@ -218,7 +249,8 @@ class _VehicleDetailsView extends StatelessWidget {
                           conditionNotes: d.conditionNotes,
                         ),
                         const SizedBox(height: 12),
-                        if (d.seller != null) VehicleSellerCard(seller: d.seller!),
+                        if (d.seller != null)
+                          VehicleSellerCard(seller: d.seller!),
                         const SizedBox(height: 14),
                         Container(
                           width: double.infinity,
@@ -238,18 +270,22 @@ class _VehicleDetailsView extends StatelessWidget {
                                 label: 'buy_car.whatsapp'.tr(),
                                 onTap: () async {
                                   final mobile = d.seller?.mobile;
-                                  if (mobile != null && mobile.trim().isNotEmpty) {
-                                    final whatsappUrl = Uri.parse('https://wa.me/$mobile');
-                                    final ok = await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+                                  if (mobile != null &&
+                                      mobile.trim().isNotEmpty) {
+                                    final whatsappUrl = Uri.parse(
+                                      'https://wa.me/$mobile',
+                                    );
+                                    final ok = await launchUrl(
+                                      whatsappUrl,
+                                      mode: LaunchMode.externalApplication,
+                                    );
                                     if (!ok && context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('buy_car.whatsapp_failed'.tr())),
+                                      Toasters.errorKey(
+                                        'buy_car.whatsapp_failed',
                                       );
                                     }
                                   } else if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('buy_car.no_phone'.tr())),
-                                    );
+                                    Toasters.errorKey('buy_car.no_phone');
                                   }
                                 },
                               ),
@@ -261,18 +297,18 @@ class _VehicleDetailsView extends StatelessWidget {
                                 label: 'buy_car.call'.tr(),
                                 onTap: () async {
                                   final mobile = d.seller?.mobile;
-                                  if (mobile != null && mobile.trim().isNotEmpty) {
+                                  if (mobile != null &&
+                                      mobile.trim().isNotEmpty) {
                                     final phoneUrl = Uri.parse('tel:$mobile');
-                                    final ok = await launchUrl(phoneUrl, mode: LaunchMode.externalApplication);
+                                    final ok = await launchUrl(
+                                      phoneUrl,
+                                      mode: LaunchMode.externalApplication,
+                                    );
                                     if (!ok && context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('buy_car.call_failed'.tr())),
-                                      );
+                                      Toasters.errorKey('buy_car.call_failed');
                                     }
                                   } else if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('buy_car.no_phone'.tr())),
-                                    );
+                                    Toasters.errorKey('buy_car.no_phone');
                                   }
                                 },
                               ),
@@ -298,10 +334,7 @@ class _TopNavButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _TopNavButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _TopNavButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -357,7 +390,10 @@ class _ActionButton extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.brandDark),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.brandDark,
+                  ),
                 ),
               ),
             ],

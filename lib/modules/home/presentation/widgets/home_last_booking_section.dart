@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:reservation_workshop/config/routes/routes_name.dart';
 import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/core/functions/localization_helper.dart';
 import 'package:reservation_workshop/core/widgets/app_card.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/modules/bookings/domain/entities/booking.dart';
 import 'package:reservation_workshop/modules/bookings/presentation/cubits/bookings_cubit/bookings_cubit.dart';
 import 'package:reservation_workshop/modules/bookings/presentation/cubits/bookings_cubit/bookings_state.dart';
@@ -85,7 +85,7 @@ class HomeLastBookingSection extends StatelessWidget {
               ),
             ],
             child: Text(
-              state.message,
+              Toasters.displayMessage(state.message),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 12,

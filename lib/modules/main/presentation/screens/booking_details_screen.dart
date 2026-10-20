@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'dart:ui' as ui;
 
-import 'package:reservation_workshop/config/style/app_colors.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/core/widgets/login_required_view.dart';
 import 'package:reservation_workshop/modules/bookings/presentation/cubits/add_booking_cubit/add_booking_cubit.dart';
 import 'package:reservation_workshop/modules/bookings/presentation/cubits/add_booking_cubit/add_booking_state.dart';
@@ -14,59 +13,15 @@ import 'package:reservation_workshop/modules/main/presentation/widgets/booking_d
 class BookingDetailsScreen extends StatelessWidget {
   const BookingDetailsScreen({super.key});
 
-  Future<void> _showResultDialog(
-    BuildContext context, {
-    required String title,
-    required String message,
-    required bool popScreenAfter,
-  }) async {
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        final isRtl = ctx.locale.languageCode == 'ar';
-        return Directionality(
-          textDirection: isRtl ? ui.TextDirection.rtl : ui.TextDirection.ltr,
-          child: AlertDialog(
-            backgroundColor: const Color(0xFF050505),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: const Color(0xFFD4AF37).withOpacity(0.25), width: 1.2),
-            ),
-            title: Text(
-              title,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
-            ),
-            content: Text(
-              message.trim().isEmpty ? '-' : message,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  if (popScreenAfter) {
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text(
-                  'حسناً',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFFD4AF37)),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)?.settings.arguments;
 
-    final BookingDetailsArgs? bookingArgs = args is BookingDetailsArgs ? args : null;
-    final NotificationCardModel? model = bookingArgs?.model ?? (args is NotificationCardModel ? args : null);
+    final BookingDetailsArgs? bookingArgs = args is BookingDetailsArgs
+        ? args
+        : null;
+    final NotificationCardModel? model =
+        bookingArgs?.model ?? (args is NotificationCardModel ? args : null);
 
     final canConfirm = bookingArgs != null;
 
@@ -75,9 +30,12 @@ class BookingDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
-        title: const Text(
-          'تفاصيل الحجز',
-          style: TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.w900),
+        title: Text(
+          'booking.details_title'.tr(),
+          style: const TextStyle(
+            color: Color(0xFFD4AF37),
+            fontWeight: FontWeight.w900,
+          ),
         ),
         foregroundColor: const Color(0xFFD4AF37),
         iconTheme: const IconThemeData(color: Color(0xFFD4AF37)),
@@ -85,19 +43,13 @@ class BookingDetailsScreen extends StatelessWidget {
       body: BlocConsumer<AddBookingCubit, AddBookingState>(
         listener: (context, state) {
           if (state is AddBookingSuccess) {
-            _showResultDialog(
-              context,
-              title: 'تم تأكيد الحجز',
-              message: state.message,
-              popScreenAfter: true,
-            );
+            Toasters.success('booking.create_success'.tr());
+            Navigator.pop(context, true);
           }
           if (state is AddBookingError) {
-            _showResultDialog(
-              context,
-              title: 'فشل تأكيد الحجز',
-              message: state.message,
-              popScreenAfter: false,
+            Toasters.errorFrom(
+              state.message,
+              fallbackKey: 'booking.create_failed',
             );
           }
         },
@@ -125,12 +77,12 @@ class BookingDetailsScreen extends StatelessWidget {
                         }
 
                         context.read<AddBookingCubit>().addBooking(
-                              bookingStart: bookingArgs.bookingStart,
-                              locationId: bookingArgs.locationId,
-                              bookingNote: bookingArgs.bookingNote,
-                              serviceId: bookingArgs.serviceId,
-                              deviceId: bookingArgs.deviceId,
-                            );
+                          bookingStart: bookingArgs.bookingStart,
+                          locationId: bookingArgs.locationId,
+                          bookingNote: bookingArgs.bookingNote,
+                          serviceId: bookingArgs.serviceId,
+                          deviceId: bookingArgs.deviceId,
+                        );
                       },
                     ),
                   ),

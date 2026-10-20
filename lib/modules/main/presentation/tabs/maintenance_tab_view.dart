@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'package:reservation_workshop/config/routes/routes_name.dart';
-import 'package:reservation_workshop/config/style/app_colors.dart';
 import 'package:reservation_workshop/core/network/local/cache_helper.dart';
 import 'package:reservation_workshop/core/utils/strings/prefkeys.dart';
 import 'package:reservation_workshop/core/widgets/login_required_view.dart';
@@ -12,6 +11,7 @@ import 'package:reservation_workshop/modules/customer/presentation/cubits/custom
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_state.dart';
 import 'package:reservation_workshop/modules/job_order_details/presentation/screens/job_order_details_args.dart';
 import 'package:reservation_workshop/modules/job_order_details/presentation/screens/job_order_details_phone_prompt.dart';
+import 'package:reservation_workshop/core/components/toasters.dart';
 import 'package:reservation_workshop/modules/job_orders/presentation/cubits/job_orders_cubit/job_orders_cubit.dart';
 import 'package:reservation_workshop/modules/job_orders/presentation/cubits/job_orders_cubit/job_orders_state.dart';
 import 'package:reservation_workshop/modules/main/presentation/widgets/job_order_card.dart';
@@ -29,7 +29,8 @@ class _MaintenanceTabViewState extends State<MaintenanceTabView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final isGuest = CacheHelper.getData<bool>(key: PrefKeys.kIsGuestMode) ?? false;
+      final isGuest =
+          CacheHelper.getData<bool>(key: PrefKeys.kIsGuestMode) ?? false;
       if (isGuest) return;
       final customerState = context.read<CustomerInfoCubit>().state;
       if (customerState is! CustomerInfoSuccess) {
@@ -40,7 +41,9 @@ class _MaintenanceTabViewState extends State<MaintenanceTabView> {
   }
 
   Future<String?> _ensurePhoneLast4(BuildContext context) async {
-    final cached = CacheHelper.getData<String>(key: PrefKeys.kJobOrderPhoneLast4);
+    final cached = CacheHelper.getData<String>(
+      key: PrefKeys.kJobOrderPhoneLast4,
+    );
     if (cached != null && cached.trim().length == 4) {
       return cached.trim();
     }
@@ -59,12 +62,15 @@ class _MaintenanceTabViewState extends State<MaintenanceTabView> {
         final digits = mobile
             .replaceAll(RegExp(r'[^0-9\u0660-\u0669]'), '')
             .replaceAllMapped(RegExp(r'[\u0660-\u0669]'), (m) {
-          final code = m[0]!.codeUnitAt(0) - 0x0660;
-          return code.toString();
-        });
+              final code = m[0]!.codeUnitAt(0) - 0x0660;
+              return code.toString();
+            });
         if (digits.length >= 4) {
           final last4 = digits.substring(digits.length - 4);
-          await CacheHelper.saveData(key: PrefKeys.kJobOrderPhoneLast4, value: last4);
+          await CacheHelper.saveData(
+            key: PrefKeys.kJobOrderPhoneLast4,
+            value: last4,
+          );
           return last4;
         }
       }
@@ -83,7 +89,8 @@ class _MaintenanceTabViewState extends State<MaintenanceTabView> {
 
   @override
   Widget build(BuildContext context) {
-    final isGuest = CacheHelper.getData<bool>(key: PrefKeys.kIsGuestMode) ?? false;
+    final isGuest =
+        CacheHelper.getData<bool>(key: PrefKeys.kIsGuestMode) ?? false;
     if (isGuest) {
       return const LoginRequiredView();
     }
@@ -99,7 +106,7 @@ class _MaintenanceTabViewState extends State<MaintenanceTabView> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                state.message,
+                Toasters.displayMessage(state.message),
                 textAlign: TextAlign.center,
                 style: textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
@@ -117,7 +124,9 @@ class _MaintenanceTabViewState extends State<MaintenanceTabView> {
                 jobOrderId: o.id,
                 plateNumber: o.plateNumber,
                 jobSheetNo: o.jobSheetNo,
-                status: o.workshop == null || o.workshop!.trim().isEmpty ? 'معلق' : o.workshop!,
+                status: o.workshop == null || o.workshop!.trim().isEmpty
+                    ? 'job_order.pending'.tr()
+                    : o.workshop!,
                 branch: o.location,
                 carType: '${o.brand} ${o.model} ${o.manufacturingYear}'.trim(),
                 bookingDate: null,

@@ -11,11 +11,14 @@ class AboutUsCubit extends Cubit<AboutUsState> {
   late final AboutUsRemoteDataSource _remote = AboutUsRemoteDataSource();
 
   Future<void> load() async {
+    if (isClosed) return;
     emit(AboutUsLoading());
     try {
       final data = await _remote.getAboutUs();
+      if (isClosed) return;
       emit(AboutUsSuccess(data));
     } catch (e) {
+      if (isClosed) return;
       emit(AboutUsError(e.toString()));
     }
   }

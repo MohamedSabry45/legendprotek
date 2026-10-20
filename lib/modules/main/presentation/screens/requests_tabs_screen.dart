@@ -14,6 +14,7 @@ import 'package:reservation_workshop/modules/main/presentation/tabs/invoices_tab
 import 'package:reservation_workshop/modules/main/presentation/tabs/maintenance_tab_view.dart';
 import 'package:reservation_workshop/modules/menu/presentation/cubits/business_location_cubit/business_location_cubit.dart' show BusinessLocationCubit;
 import 'package:reservation_workshop/modules/menu/presentation/widgets/menu_drawer.dart';
+import 'package:reservation_workshop/modules/notifications/presentation/widgets/notification_unread_badge.dart';
 import 'package:reservation_workshop/modules/branch/presentation/cubits/branch_cubit/branch_cubit.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_cubit.dart';
 import 'package:reservation_workshop/modules/customer/presentation/cubits/customer_info_cubit/customer_info_state.dart';
@@ -216,28 +217,14 @@ class _RequestsTabsScreenState extends State<RequestsTabsScreen> with SingleTick
                                 width: 1.2,
                               ),
                             ),
-                            child: Stack(
-                              children: [
-                                const Center(
-                                  child: Icon(
-                                    Icons.notifications_outlined,
-                                    color: Color(0xFFD4AF37),
-                                    size: 20,
-                                  ),
+                            child: const Center(
+                              child: NotificationUnreadBadge(
+                                child: Icon(
+                                  Icons.notifications_outlined,
+                                  color: Color(0xFFD4AF37),
+                                  size: 20,
                                 ),
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFD4AF37),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),

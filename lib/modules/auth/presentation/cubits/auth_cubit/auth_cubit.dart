@@ -8,12 +8,15 @@ class AuthCubit extends Cubit<AuthState> {
   static AuthCubit get(context) => BlocProvider.of<AuthCubit>(context);
 
   Future<void> loginUser({required String userName, required String password}) async {
+    if (isClosed) return;
     emit(LoginLoadingState());
     await Future<void>.delayed(const Duration(milliseconds: 800));
     if (userName.trim().isEmpty || password.trim().isEmpty) {
+      if (isClosed) return;
       emit(LoginErrorState('Invalid credentials'));
       return;
     }
+    if (isClosed) return;
     emit(LoginSuccessState());
   }
 

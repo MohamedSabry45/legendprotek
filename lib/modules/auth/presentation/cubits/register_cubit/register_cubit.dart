@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:reservation_workshop/constants/app_constants.dart';
 import 'package:reservation_workshop/core/network/local/cache_helper.dart';
 import 'package:reservation_workshop/core/utils/strings/prefkeys.dart';
+import 'package:reservation_workshop/modules/notifications/data/datasources/fcm_token_remote_datasource.dart';
 
 import '../../../data/datasources/auth_remote_datasource.dart';
 import '../../../data/repositories/auth_repository_impl.dart';
@@ -23,6 +26,7 @@ class RegisterCubit extends Cubit<RegisterState> {
     required String mobile,
     required String password,
   }) async {
+    if (isClosed) return;
     emit(RegisterLoading());
 
     final n = name.trim();
@@ -30,6 +34,7 @@ class RegisterCubit extends Cubit<RegisterState> {
     final p = password.trim();
 
     if (n.isEmpty || m.isEmpty || p.isEmpty) {
+      if (isClosed) return;
       emit(RegisterError('Required'));
       return;
     }
@@ -44,10 +49,13 @@ class RegisterCubit extends Cubit<RegisterState> {
       if (session.token.trim().isNotEmpty) {
         AppConstants.token = session.token;
         await CacheHelper.saveData(key: PrefKeys.kAccessToken, value: session.token);
+        unawaited(FcmTokenRemoteDataSource.registerCurrentToken());
       }
 
+      if (isClosed) return;
       emit(RegisterSuccess(session));
     } catch (e) {
+      if (isClosed) return;
       emit(RegisterError(e.toString()));
     }
   }

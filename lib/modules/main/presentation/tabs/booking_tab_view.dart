@@ -48,7 +48,8 @@ class _BookingTabViewState extends State<BookingTabView> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final isGuest = CacheHelper.getData<bool>(key: PrefKeys.kIsGuestMode) ?? false;
+      final isGuest =
+          CacheHelper.getData<bool>(key: PrefKeys.kIsGuestMode) ?? false;
       if (isGuest) return;
       context.read<CustomerInfoCubit>().load();
       context.read<BranchCubit>().load();
@@ -56,7 +57,9 @@ class _BookingTabViewState extends State<BookingTabView> {
   }
 
   Future<void> _loadSelectedCar() async {
-    final carId = await CacheHelper.getDataAsync<int>(key: PrefKeys.kSelectedCarId);
+    final carId = await CacheHelper.getDataAsync<int>(
+      key: PrefKeys.kSelectedCarId,
+    );
     if (!mounted) return;
     setState(() => _selectedCarId = carId);
   }
@@ -68,8 +71,14 @@ class _BookingTabViewState extends State<BookingTabView> {
 
   Future<void> _persistSelectedCar(CustomerCar car) async {
     await CacheHelper.saveData(key: PrefKeys.kSelectedCarId, value: car.id);
-    await CacheHelper.saveData(key: PrefKeys.kSelectedCarLabel, value: _carLabel(car));
-    await CacheHelper.saveData(key: PrefKeys.kSelectedCarLogo, value: (car.carLogo ?? '').trim());
+    await CacheHelper.saveData(
+      key: PrefKeys.kSelectedCarLabel,
+      value: _carLabel(car),
+    );
+    await CacheHelper.saveData(
+      key: PrefKeys.kSelectedCarLogo,
+      value: (car.carLogo ?? '').trim(),
+    );
   }
 
   @override
@@ -119,14 +128,19 @@ class _BookingTabViewState extends State<BookingTabView> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final isGuest = CacheHelper.getData<bool>(key: PrefKeys.kIsGuestMode) ?? false;
+    final isGuest =
+        CacheHelper.getData<bool>(key: PrefKeys.kIsGuestMode) ?? false;
     if (isGuest) {
       return const LoginRequiredView();
     }
     return BlocBuilder<CustomerInfoCubit, CustomerInfoState>(
       builder: (context, state) {
-        final customerName = state is CustomerInfoSuccess ? state.info.name : '';
-        final cars = state is CustomerInfoSuccess ? state.info.cars : const <CustomerCar>[];
+        final customerName = state is CustomerInfoSuccess
+            ? state.info.name
+            : '';
+        final cars = state is CustomerInfoSuccess
+            ? state.info.cars
+            : const <CustomerCar>[];
 
         final greeting = customerName.trim().isEmpty
             ? 'booking.greeting'.tr()
@@ -146,7 +160,9 @@ class _BookingTabViewState extends State<BookingTabView> {
                           padding: const EdgeInsets.all(16),
                           borderRadius: 18,
                           backgroundColor: const Color(0xFF050505),
-                          borderColor: const Color(0xFFD4AF37).withOpacity(0.25),
+                          borderColor: const Color(
+                            0xFFD4AF37,
+                          ).withOpacity(0.25),
                           boxShadow: [
                             BoxShadow(
                               color: const Color(0xFFD4AF37).withOpacity(0.15),
@@ -187,7 +203,9 @@ class _BookingTabViewState extends State<BookingTabView> {
                                     .toList(),
                                 onChanged: (id) async {
                                   if (id == null) return;
-                                  final car = cars.where((e) => e.id == id).toList();
+                                  final car = cars
+                                      .where((e) => e.id == id)
+                                      .toList();
                                   if (car.isEmpty) return;
 
                                   setState(() => _selectedCarId = id);
@@ -199,7 +217,9 @@ class _BookingTabViewState extends State<BookingTabView> {
                               const SizedBox(height: AppSpacing.lg),
                               BlocBuilder<BranchCubit, BranchState>(
                                 builder: (context, branchState) {
-                                  final branches = branchState is BranchSuccess ? branchState.branches : const <Branch>[];
+                                  final branches = branchState is BranchSuccess
+                                      ? branchState.branches
+                                      : const <Branch>[];
 
                                   return BookingDropdownField<int>(
                                     label: 'booking.select_branch'.tr(),
@@ -224,7 +244,9 @@ class _BookingTabViewState extends State<BookingTabView> {
                                         context.read<ServiceCubit>().clear();
                                         return;
                                       }
-                                      context.read<ServiceCubit>().load(locationId: id);
+                                      context.read<ServiceCubit>().load(
+                                        locationId: id,
+                                      );
                                     },
                                   );
                                 },
@@ -233,19 +255,24 @@ class _BookingTabViewState extends State<BookingTabView> {
                               if (_selectedBranchId != null)
                                 BlocBuilder<ServiceCubit, ServiceState>(
                                   builder: (context, serviceState) {
-                                    final services = serviceState is ServiceSuccess ? serviceState.services : const <Service>[];
+                                    final services =
+                                        serviceState is ServiceSuccess
+                                        ? serviceState.services
+                                        : const <Service>[];
 
                                     return Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
                                             Text(
                                               'booking.select_service'.tr(),
-                                              style: textTheme.bodySmall?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.white,
-                                              ),
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white,
+                                                  ),
                                             ),
                                             const SizedBox(width: 4),
                                             const Text(
@@ -265,13 +292,19 @@ class _BookingTabViewState extends State<BookingTabView> {
                                           crossAxisSpacing: 10,
                                           childAspectRatio: 2.55,
                                           shrinkWrap: true,
-                                          physics: const NeverScrollableScrollPhysics(),
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
                                           children: services
                                               .map(
                                                 (s) => _ServiceCard(
                                                   title: s.name,
-                                                  selected: _selectedServiceId == s.id,
-                                                  onTap: () => setState(() => _selectedServiceId = s.id),
+                                                  selected:
+                                                      _selectedServiceId ==
+                                                      s.id,
+                                                  onTap: () => setState(
+                                                    () => _selectedServiceId =
+                                                        s.id,
+                                                  ),
                                                 ),
                                               )
                                               .toList(),
@@ -311,8 +344,12 @@ class _BookingTabViewState extends State<BookingTabView> {
                           children: [
                             const SizedBox(height: AppSpacing.lg),
                             SubmitBookingButton(
-                              onPressed: () {
-                                final isGuest = CacheHelper.getData<bool>(key: PrefKeys.kIsGuestMode) ?? false;
+                              onPressed: () async {
+                                final isGuest =
+                                    CacheHelper.getData<bool>(
+                                      key: PrefKeys.kIsGuestMode,
+                                    ) ??
+                                    false;
                                 if (isGuest) {
                                   Navigator.pushNamedAndRemoveUntil(
                                     context,
@@ -327,47 +364,91 @@ class _BookingTabViewState extends State<BookingTabView> {
                                 final serviceId = _selectedServiceId;
 
                                 if (carId == null) {
-                                  Toasters.show('booking.toast_select_car'.tr());
+                                  Toasters.errorKey('booking.toast_select_car');
                                   return;
                                 }
                                 if (branchId == null) {
-                                  Toasters.show('booking.toast_select_branch'.tr());
+                                  Toasters.errorKey(
+                                    'booking.toast_select_branch',
+                                  );
                                   return;
                                 }
                                 if (serviceId == null) {
-                                  Toasters.show('booking.toast_select_service'.tr());
+                                  Toasters.errorKey(
+                                    'booking.toast_select_service',
+                                  );
                                   return;
                                 }
 
-                                final customerState = context.read<CustomerInfoCubit>().state;
-                                final name = customerState is CustomerInfoSuccess ? customerState.info.name : '';
-                                final phone = customerState is CustomerInfoSuccess ? customerState.info.mobile : '';
-                                final cars = customerState is CustomerInfoSuccess ? customerState.info.cars : const <CustomerCar>[];
-                                final selectedCar = cars.where((c) => c.id == carId).toList();
+                                final customerState = context
+                                    .read<CustomerInfoCubit>()
+                                    .state;
+                                final name =
+                                    customerState is CustomerInfoSuccess
+                                    ? customerState.info.name
+                                    : '';
+                                final phone =
+                                    customerState is CustomerInfoSuccess
+                                    ? customerState.info.mobile
+                                    : '';
+                                final cars =
+                                    customerState is CustomerInfoSuccess
+                                    ? customerState.info.cars
+                                    : const <CustomerCar>[];
+                                final selectedCar = cars
+                                    .where((c) => c.id == carId)
+                                    .toList();
 
-                                final branchState = context.read<BranchCubit>().state;
-                                final branches = branchState is BranchSuccess ? branchState.branches : const <Branch>[];
-                                final selectedBranch = branches.where((b) => b.id == branchId).toList();
+                                final branchState = context
+                                    .read<BranchCubit>()
+                                    .state;
+                                final branches = branchState is BranchSuccess
+                                    ? branchState.branches
+                                    : const <Branch>[];
+                                final selectedBranch = branches
+                                    .where((b) => b.id == branchId)
+                                    .toList();
 
-                                final serviceState = context.read<ServiceCubit>().state;
-                                final services = serviceState is ServiceSuccess ? serviceState.services : const <Service>[];
-                                final selectedService = services.where((s) => s.id == serviceId).toList();
+                                final serviceState = context
+                                    .read<ServiceCubit>()
+                                    .state;
+                                final services = serviceState is ServiceSuccess
+                                    ? serviceState.services
+                                    : const <Service>[];
+                                final selectedService = services
+                                    .where((s) => s.id == serviceId)
+                                    .toList();
 
                                 final note = _notesController.text.trim();
-                                final bookingStart = _formatBookingStart(_selectedDateTime);
+                                final bookingStart = _formatBookingStart(
+                                  _selectedDateTime,
+                                );
 
                                 final model = NotificationCardModel(
                                   workOrderNo: '-',
                                   customer: '',
-                                  car: selectedCar.isNotEmpty ? selectedCar.first.device : '-',
-                                  carModel: selectedCar.isNotEmpty ? selectedCar.first.model : '-',
+                                  car: selectedCar.isNotEmpty
+                                      ? selectedCar.first.device
+                                      : '-',
+                                  carModel: selectedCar.isNotEmpty
+                                      ? selectedCar.first.model
+                                      : '-',
                                   plate: selectedCar.isNotEmpty
-                                      ? ((selectedCar.first.plateNumber ?? '').trim().isEmpty ? '-' : selectedCar.first.plateNumber!.trim())
+                                      ? ((selectedCar.first.plateNumber ?? '')
+                                                .trim()
+                                                .isEmpty
+                                            ? '-'
+                                            : selectedCar.first.plateNumber!
+                                                  .trim())
                                       : '-',
                                   status: '-',
                                   dateTime: bookingStart,
-                                  service: selectedService.isNotEmpty ? selectedService.first.name : '-',
-                                  branch: selectedBranch.isNotEmpty ? selectedBranch.first.name : '-',
+                                  service: selectedService.isNotEmpty
+                                      ? selectedService.first.name
+                                      : '-',
+                                  branch: selectedBranch.isNotEmpty
+                                      ? selectedBranch.first.name
+                                      : '-',
                                   area: note.isEmpty ? '-' : note,
                                   name: name,
                                   phone: phone,
@@ -382,11 +463,21 @@ class _BookingTabViewState extends State<BookingTabView> {
                                   bookingNote: note,
                                 );
 
-                                Navigator.pushNamed(
-                                  context,
-                                  RoutesName.bookingDetailsScreen,
-                                  arguments: args,
-                                );
+                                final created =
+                                    await Navigator.pushNamed(
+                                      context,
+                                      RoutesName.bookingDetailsScreen,
+                                      arguments: args,
+                                    );
+
+                                if (created == true && mounted) {
+                                  setState(() {
+                                    _selectedBranchId = null;
+                                    _selectedServiceId = null;
+                                    _selectedDateTime = DateTime.now();
+                                    _notesController.clear();
+                                  });
+                                }
                               },
                             ),
                             const SizedBox(height: AppSpacing.sm),
@@ -436,7 +527,9 @@ class _ServiceCard extends StatelessWidget {
           color: selected ? const Color(0xFFD4AF37) : const Color(0xFF0A0A0A),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? const Color(0xFFD4AF37) : const Color(0xFFD4AF37).withOpacity(0.3),
+            color: selected
+                ? const Color(0xFFD4AF37)
+                : const Color(0xFFD4AF37).withOpacity(0.3),
             width: 1.2,
           ),
           boxShadow: selected
@@ -458,7 +551,7 @@ class _ServiceCard extends StatelessWidget {
             style: textTheme.bodySmall?.copyWith(
               height: 1.2,
               fontWeight: FontWeight.w700,
-              color: selected ? Colors.white : AppColors.brandDark,
+              color: Colors.white,
             ),
           ),
         ),
